@@ -669,6 +669,10 @@ class TicketsController extends Controller
                 $modificacion->JUSTIFICACION = $request->input('justificacion');
             }
             $modificacion->save();
+
+            // NOTIFICAR FECHA COMPROMISO SIN CONSIDERAR AREA FINANZAS
+            $cotizacion =                 false;
+            self::envioCompromiso($ticket, $cotizacion);
         } else {
             $ticket->ESTATUS_COTIZACION='SI';
             $ticket->COTIZACION =       $monto;
@@ -693,10 +697,13 @@ class TicketsController extends Controller
                 $modificacion->JUSTIFICACION = $request->input('justificacion');
             }
             $modificacion->save();
+
+            // NOTIFICAR COTIZACION CC-> AREA FINANZAS
+            $cotizacion =               $monto;
+            self::envioCompromiso($ticket, $cotizacion);
         }
 
-        // NOTIFICAR COTIZACIONES
-        self::envioCotizacion($ticket);
+
 
         return redirect()->route('consultar.ticket');
     }
@@ -1132,7 +1139,7 @@ class TicketsController extends Controller
         }
     }
 
-    public function envioCotizacion($ticket){
+    public function envioCompromiso($ticket, $cotizacion){
         // Carga y guardado de Imagenes para correo
         $foto_1 =             $ticket->FOTO_OBLIGATORIA;
         $foto_2 =             $ticket->FOTO_2;
@@ -1203,12 +1210,15 @@ class TicketsController extends Controller
             Mail::to($correo)->send(new CotizacionTicket($data));
         }
 
+        // SI HUBO COTIZACION
         // Enviar correo a Finanzas Andrés Becerril - Maricarmen Ruiz
-        foreach ($destinatarios['finanzas'] as $nombre => $correo) {
-            $data['destinatario'] = $nombre;
-            $data['supervisor_bdt']   = false;
+        if ($cotizacion) {
+            foreach ($destinatarios['finanzas'] as $nombre => $correo) {
+                $data['destinatario'] = $nombre;
+                $data['supervisor_bdt']   = false;
 
-            Mail::to($correo)->send(new CotizacionTicket($data));
+                Mail::to($correo)->send(new CotizacionTicket($data));
+            }
         }
     }
 
