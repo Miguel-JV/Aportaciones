@@ -40,10 +40,13 @@ use App\Mail\NotificacionTicketDirecto;
 use Illuminate\Http\Request;
 
 // Dependencias de Excel
-use App\Exports\ticketsExport;
-use App\Exports\ticketEstatusDetalle;
 use App\Exports\consultaCompuestaTickets;
 use Maatwebsite\Excel\Facades\Excel;
+
+use App\Exports\ticketResumenGeneral;
+use App\Exports\ticketEstatusDetalle;
+use App\Exports\ticketsExport;
+
 
 // Namespace para fechas
 use Carbon\Carbon;
@@ -669,6 +672,10 @@ class TicketsController extends Controller
                 $modificacion->JUSTIFICACION = $request->input('justificacion');
             }
             $modificacion->save();
+
+            // NOTIFICAR FECHA COMPROMISO SIN CONSIDERAR AREA FINANZAS
+            $cotizacion =                 false;
+            self::envioCompromiso($ticket, $cotizacion);
         } else {
             $ticket->ESTATUS_COTIZACION='SI';
             $ticket->COTIZACION =       $monto;
@@ -693,10 +700,13 @@ class TicketsController extends Controller
                 $modificacion->JUSTIFICACION = $request->input('justificacion');
             }
             $modificacion->save();
+
+            // NOTIFICAR COTIZACION CC-> AREA FINANZAS
+            $cotizacion =               $monto;
+            self::envioCompromiso($ticket, $cotizacion);
         }
 
-        // NOTIFICAR COTIZACIONES
-        self::envioCotizacion($ticket);
+
 
         return redirect()->route('consultar.ticket');
     }
@@ -800,20 +810,12 @@ class TicketsController extends Controller
         $dateStart = $request->input('fecha_inicio');
         $dateEnd = $request->input('fecha_termino');
 
-        $import = new consultaCompuestaTickets($dateStart, $dateEnd);
 
-        // Paginaciones
-        $import->onlySheets('Detalle General',
-                            'Estatus Detalle',
-                            'Resumen',
-                        );
-
-        // return $request->all();
-        return Excel::download($import, 'Consulta-Mantenimientos.xlsx');
+        $archivo = new consultaCompuestaTickets($dateStart, $dateEnd);
+        $archivo->descargar();
     }
 
     // Personal
-
     public function crearPersonal(Request $request){
         $nombre =       $request->input('nombre');
         $puesto =       $request->input('puesto');
@@ -1132,7 +1134,7 @@ class TicketsController extends Controller
         }
     }
 
-    public function envioCotizacion($ticket){
+    public function envioCompromiso($ticket, $cotizacion){
         // Carga y guardado de Imagenes para correo
         $foto_1 =             $ticket->FOTO_OBLIGATORIA;
         $foto_2 =             $ticket->FOTO_2;
@@ -1203,12 +1205,15 @@ class TicketsController extends Controller
             Mail::to($correo)->send(new CotizacionTicket($data));
         }
 
+        // SI HUBO COTIZACION
         // Enviar correo a Finanzas Andrés Becerril - Maricarmen Ruiz
-        foreach ($destinatarios['finanzas'] as $nombre => $correo) {
-            $data['destinatario'] = $nombre;
-            $data['supervisor_bdt']   = false;
+        if ($cotizacion) {
+            foreach ($destinatarios['finanzas'] as $nombre => $correo) {
+                $data['destinatario'] = $nombre;
+                $data['supervisor_bdt']   = false;
 
-            Mail::to($correo)->send(new CotizacionTicket($data));
+                Mail::to($correo)->send(new CotizacionTicket($data));
+            }
         }
     }
 

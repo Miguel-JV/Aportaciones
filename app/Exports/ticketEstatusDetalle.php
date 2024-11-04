@@ -4,17 +4,12 @@ namespace App\Exports;
 
 use App\tickets;
 
-use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Facades\Excel;
 
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Carbon\Carbon;
 
 
-class ticketEstatusDetalle implements  FromView, WithTitle, WithStyles, ShouldAutoSize{
+class ticketEstatusDetalle {
 
     /**
     * @return \Illuminate\Support\Collection
@@ -26,9 +21,6 @@ class ticketEstatusDetalle implements  FromView, WithTitle, WithStyles, ShouldAu
         $this->dateEnd = $dateEnd;
     }
 
-    public function title():string{
-        return 'Estatus Detalle';
-    }
 
     public function styles(Worksheet $sheet){
         return [
@@ -50,6 +42,44 @@ class ticketEstatusDetalle implements  FromView, WithTitle, WithStyles, ShouldAu
             'H' => ['font' => ['size' => 8]],
 
         ];
+    }
+
+    public function descargar(){
+
+        return Excel::create('Consulta de Mantenimientos', function($excel)  {
+
+            $excel->sheet('Estatus Detalle', function($sheet)  {
+                $tickets_pendientes = tickets::whereBetween('FECHA_INICIO', [$this->dateStart,$this->dateEnd])->where('ESTATUS_ACTUAL', 'PENDIENTE')->orderBy('ESTATUS_CASA', 'ASC')->get();
+                $tickets_procesados = tickets::whereBetween('FECHA_INICIO', [$this->dateStart,$this->dateEnd])->where('ESTATUS_ACTUAL', 'EN PROCESO')->orderBy('ESTATUS_CASA', 'ASC')->get();
+                $tickets_finalizados = tickets::whereBetween('FECHA_INICIO', [$this->dateStart,$this->dateEnd])->where('ESTATUS_ACTUAL', 'FINALIZADO')->orderBy('ESTATUS_CASA', 'ASC')->get();
+
+                $resultado = [
+                    'pendientes' => $tickets_pendientes,
+                    'procesados' => $tickets_procesados,
+                    'finalizados' => $tickets_finalizados,
+                ];
+
+                // $sheet->setAutoSize(true);
+
+                // $sheet->setWidth(array(
+                //     'A'     =>  500,
+                //     'B'     =>  100
+                // ));
+
+                $sheet->loadView('exports.ticketEstatusDetalle', [
+                    'resultado' => $resultado
+                ]);
+
+                // $sheet->setAutoSize(array(
+                //     'A', 'B', 'C' , 'D'
+                // ));
+
+
+            });
+
+
+        })->download('xlsx');
+
     }
 
     public function view(): View{
