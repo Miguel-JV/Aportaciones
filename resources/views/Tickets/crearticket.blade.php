@@ -160,10 +160,13 @@
 
             <div class="form-row">
                 <div class="form-group col-md-4">
-                    <label for="daño">Foto Evidencia Obligatoria</label>
+                    <label for="foto_obligatoria">Foto Evidencia Obligatoria</label>
 
                     <input id="foto_obligatoria" name="foto_obligatoria" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".jpg, .jpeg, .png"   required /> <br>
                     <label id="lbl_foto_obligatoria" for="foto_obligatoria" class="btn btn-info" onmouseover="asignarNombre(this)">Adjuntar Evidencia</label>
+
+                    <br>
+                    <label for="foto_obligatoria" class="file-note">Imagenes .jpg, .jpeg, .png, no mayores a 300KB </label>
                 </div>
 
                 <div class="form-group col-md-4">
@@ -185,17 +188,17 @@
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label for="link_fotos">Link Carpeta de Fotos</label>
-                    <textarea id="link_fotos" name="link_fotos" class="form-control" rows="3" readonly></textarea>
+                    <textarea id="link_fotos" name="link_fotos" class="form-control" rows="2" readonly></textarea>
                 </div>
                 <div class="form-group col-md-6">
                     <label for="descripcion_concreta">Descripción Concreta</label>
-                    <textarea id="descripcion_concreta" name="descripcion_concreta" class="form-control" rows="3" maxlength="100" placeholder="Max 100 caracteres" required></textarea>
+                    <textarea id="descripcion_concreta" name="descripcion_concreta" class="form-control" rows="2" maxlength="100" placeholder="Max 100 caracteres" required></textarea>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group col-md-6">
-                    <button type="submit" class="btn btn-primary btn-custom" onclick="cambiarBG()">Guardar</button>
+                    <button type="submit" class="btn btn-primary btn-custom" onclick="cambiarBG();">Guardar</button>
                 </div>
                 <div class="form-group col-md-6">
                     <button type="reset" class="btn btn-secondary btn-custom">Limpiar</button>
@@ -210,6 +213,9 @@
 
 @section('js')
 <script>
+//RUTAS
+    //let strroute = '/Aportaciones/tickets/creacion/'
+    let strroute = '/tickets/creacion/'
 // MODIFICACION DE ELEMENTOS INPUT FILE
     let labelArchivo = '';
 
@@ -217,13 +223,19 @@
         labelArchivo = lbl;
     }
 
-    function cambiarContenido(inputArchivo) {
 
+    function cambiarContenido(inputArchivo) {
+        // Tamaño maximo del archivo
+        //let maxSize = 3000000; //3mb -> 3,000,000
+        let maxSize = 300000;//300kb
+
+        // Validamos el primer archivo únicamente
+        let archivo = inputArchivo.files[0];
         let nombreArchivo = inputArchivo.value;
         let idExtencion = nombreArchivo.lastIndexOf(".") + 1;
         let extArchivo = nombreArchivo.substr(idExtencion, nombreArchivo.length).toLowerCase();
 
-        if (extArchivo=="jpg" || extArchivo=="jpeg" || extArchivo=="png"){
+        if (extArchivo=="jpg" && archivo.size <= maxSize|| extArchivo=="jpeg" && archivo.size <= maxSize|| extArchivo=="png" && archivo.size <= maxSize){
 
             let nombreArchivo = inputArchivo.files[0].name;
             if (inputArchivo.value != "") {
@@ -235,7 +247,7 @@
         }else{
             inputArchivo.value = "";
             labelArchivo.className = 'btn btn-outline-danger'
-            labelArchivo.innerHTML = "Adjuntar una Imagen";
+            labelArchivo.innerHTML = "Adjuntar jpg,jpeg,png - 300Kb máximo";
 
         }
     }
@@ -279,15 +291,15 @@
         limpiarSelect(elementosSelect);
 
         // Cargar colecciones de las dependencias de las casas
-        fetch(`/tickets/creacion/${casaId}/Directores`)
+        fetch(`${strroute}${casaId}/Directores`)
             .then(response => response.json())
             .then(jsonData => crearDirector(jsonData))
 
-        fetch(`/tickets/creacion/${casaId}/Drives`)
+        fetch(`${strroute}${casaId}/Drives`)
             .then(response => response.json())
             .then(jsonData => crearDrive(jsonData))
 
-        fetch(`/tickets/creacion/${casaId}/Afecciones`)
+        fetch(`${strroute}${casaId}/Afecciones`)
             .then(response => response.json())
             .then(jsonData => crearAfecciones(jsonData))
 
@@ -333,20 +345,20 @@
         let afeccionId = afeccionSelect.value;
         let casaId = casaSelect.value;
 
-        fetch(`/tickets/creacion/${afeccionId}/Areas`)
+        fetch(`${strroute}${afeccionId}/Areas`)
             .then(response => response.json())
             .then(jsonData => crearArea(jsonData))
 
 
-        fetch(`/tickets/creacion/${casaId}/${afeccionId}/Supervisores`)
+        fetch(`${strroute}${casaId}/${afeccionId}/Supervisores`)
             .then(response => response.json())
             .then(jsonData => crearSupervisor(jsonData))
 
-        fetch(`/tickets/creacion/${casaId}/${afeccionId}/Subgerentes`)
+        fetch(`${strroute}${casaId}/${afeccionId}/Subgerentes`)
             .then(response => response.json())
             .then(jsonData => crearSubgerente(jsonData))
 
-        fetch(`/tickets/creacion/${casaId}/${afeccionId}/Gerentes`)
+        fetch(`${strroute}${casaId}/${afeccionId}/Gerentes`)
             .then(response => response.json())
             .then(jsonData => crearGerente(jsonData))
     }
@@ -386,26 +398,74 @@
 
     function crearSupervisor(jsonSupervisor){
         let supervisoresInput = document.getElementById('supervisor');
+        let afeccionInput = document.getElementById('afeccion');
+        let casaSelect = document.getElementById('casa');
 
-        limpiarElemento(supervisoresInput);
-        supervisoresInput.value = jsonSupervisor.NOMBRE;
+
+        switch(true) {
+            // POR CONVENIO SEDENA Y SEMAR SE ENCARGAN DE LAS AFECCIONES
+            //SEDENA SEMAR
+            case (casaSelect.value == 9 || casaSelect.value == 10):
+                //  MENOS ALARMA                ,   PUBLICIDAD               Y            SISTEMA DE AIRE
+                if ((afeccionInput.value == 1) || (afeccionInput.value == 2) || (afeccionInput.value == 13)) {
+                    limpiarElemento(supervisoresInput);
+                    supervisoresInput.value = jsonSupervisor.NOMBRE;
+                }else{
+                    limpiarElemento(supervisoresInput);
+                }
+                break;
+            default:
+                limpiarElemento(supervisoresInput);
+                supervisoresInput.value = jsonSupervisor.NOMBRE;
+        }
 
     }
 
     function crearSubgerente(jsonSubgerente){
         let subgerentesInput = document.getElementById('subgerente');
+        let afeccionInput = document.getElementById('afeccion');
+        let casaSelect = document.getElementById('casa');
 
-        limpiarElemento(subgerentesInput);
-        subgerentesInput.value = jsonSubgerente.NOMBRE;
+        switch(true) {
+            // POR CONVENIO SEDENA Y SEMAR SE ENCARGAN DE LAS AFECCIONES
+            //SEDENA SEMAR
+            case (casaSelect.value == 9 || casaSelect.value == 10):
+                //  MENOS ALARMA                ,   PUBLICIDAD               Y            SISTEMA DE AIRE
+                if ((afeccionInput.value == 1) || (afeccionInput.value == 2) || (afeccionInput.value == 13)) {
+                    limpiarElemento(subgerentesInput);
+                    subgerentesInput.value = jsonSubgerente.NOMBRE;
+                }else{
+                    limpiarElemento(subgerentesInput);
+                }
+                break;
+            default:
+                limpiarElemento(subgerentesInput);
+                subgerentesInput.value = jsonSubgerente.NOMBRE;
+        }
 
     }
 
     function crearGerente(jsonGerente){
         let gerentesInput = document.getElementById('gerente');
+        let afeccionInput = document.getElementById('afeccion');
+        let casaSelect = document.getElementById('casa');
 
-        limpiarElemento(gerentesInput);
-        gerentesInput.value = jsonGerente.NOMBRE;
-
+        switch(true) {
+            // POR CONVENIO SEDENA Y SEMAR SE ENCARGAN DE LAS AFECCIONES
+            //SEDENA SEMAR
+            case (casaSelect.value == 9 || casaSelect.value == 10):
+                //  MENOS ALARMA                ,   PUBLICIDAD               Y            SISTEMA DE AIRE
+                if ((afeccionInput.value == 1) || (afeccionInput.value == 2) || (afeccionInput.value == 13)) {
+                    limpiarElemento(gerentesInput);
+                    gerentesInput.value = jsonGerente.NOMBRE;
+                }else{
+                    limpiarElemento(gerentesInput);
+                }
+                break;
+            default:
+                limpiarElemento(gerentesInput);
+                gerentesInput.value = jsonGerente.NOMBRE;
+        }
     }
 
 
@@ -419,11 +479,11 @@
             limpiarSelect(elementoSelect);
 
 
-            fetch(`/tickets/creacion/${entornosId}/${casaId}/Sitios`)
+            fetch(`${strroute}${entornosId}/${casaId}/Sitios`)
                 .then(response => response.json())
                 .then(jsonData => crearSitios(jsonData))
 
-            fetch(`/tickets/creacion/${entornosId}/Objetos`)
+            fetch(`${strroute}${entornosId}/Objetos`)
                 .then(response => response.json())
                 .then(jsonData => crearObjetos(jsonData))
 
@@ -446,7 +506,7 @@
     function cargarDependenciasSitios(sitiosSelect) {
             let sitiosId = sitiosSelect.value;
 
-            fetch(`/tickets/creacion/${sitiosId}/Espacio`)
+            fetch(`${strroute}${sitiosId}/Espacio`)
                 .then(response => response.json())
                 .then(jsonData => crearEspacio(jsonData))
 
@@ -483,7 +543,7 @@
     function cargarDependenciasObjeto(objetoSelect) {
         let objetoId = objetoSelect.value;
 
-        fetch(`/tickets/creacion/${objetoId}/Elementos`)
+        fetch(`${strroute}${objetoId}/Elementos`)
             .then(response => response.json())
             .then(jsonData => crearElemento(jsonData))
 
@@ -506,7 +566,7 @@
     function cargarDependenciasDaño(dañoSelect) {
         let dañoId = dañoSelect.value;
 
-        fetch(`/tickets/creacion/${dañoId}/Prioridades`)
+        fetch(`${strroute}${dañoId}/Prioridades`)
             .then(response => response.json())
             .then(jsonData => crearPrioridad(jsonData))
     }

@@ -13,7 +13,7 @@ class CasasTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('casas')->insert(['ID_CASA' => 1,  'NOMBRE' => 'Aldea Iztapalapa', 'ESTATUS' => 'ABIERTA', 'CORREO' => 'reportes.bdt@gmail.com']);
+        DB::table('casas')->insert(['ID_CASA' => 1,  'NOMBRE' => 'Aldea Iztapalapa', 'ESTATUS' => 'ABIERTA', 'CORREO' => '']);
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/casas.csv"), "r");
         $firstline = true;

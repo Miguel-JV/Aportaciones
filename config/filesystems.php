@@ -55,9 +55,23 @@ return [
             'visibility' => 'public',
         ],
 
+        'tickets_reportes' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/tickets/reportes'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
+        ],
+
         'tickets_evidencias' => [
             'driver' => 'local',
             'root' => storage_path('app/public/tickets/evidencias'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
+        ],
+
+        'tickets_evidencias_pago' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/tickets/evidencias/pago'),
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
         ],

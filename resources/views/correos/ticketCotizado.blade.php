@@ -94,7 +94,7 @@
             <img src="https://bibliotecadigital.telmex.com/bibliotecaDigital/resources/img/LOGO_BDT_Flag.png" alt="Telmex">
         </div>
         <div class="content">
-            @if ($data['ticket']->ESTATUS_COTIZACION == 'NO')
+            @if ($data['ticket']->ESTATUS_COTIZACION == 'SI')
                 <h1>Informe de Nueva Cotizacion Ticket <br>
                     {{ $data['folio'] }} <br>
                     {{ $data['casa'] }} -  {{ $data['area'] }}
@@ -256,7 +256,7 @@
                 </tbody>
             </table><br>
 
-            @if ($data['supervisor_bdt'])
+            @if ($data['coordinador_bdt'])
                 <a href="{{ route('autorizar.ticket', [
                         'ticket'    =>  $data['ticket'],
                         'encargado' =>  $data['encript']

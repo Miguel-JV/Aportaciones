@@ -74,7 +74,7 @@
         <div class="modal-body">
 
 
-            <div class="form-row" s>
+            <div class="form-row" >
                 <div class="form-group col-md-6">
                     <div class=" form-container" >
                         <iframe id="ytplayer" type="text/html" width="100%" height="100%"

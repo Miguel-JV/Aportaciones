@@ -22,6 +22,12 @@
 
         }
 
+        .file-note{
+            color: gray;
+            font-style:italic;
+            font-family: cursive;
+        }
+
     </style>
 
     {{-- ADICIONES --}}
@@ -75,67 +81,91 @@
 
 
 @section('contenido')
-    @if ($ticket->ESTATUS_AUTORIZACION == 'SI' || $ticket->REINCIDENCIA == 'SI' || $ticket->AREA_RESPONSABLE == 'SEDENA' || $ticket->AREA_RESPONSABLE == 'SEMAR' || $ticket->DAÑO == 'Siniestro - Temblor' || $ticket->DAÑO == 'Siniestro - Desastre Meteorilógico')
+    @if ($ticket->ESTATUS_PAGO == 'SI')
         <div class="container form-container">
             <div class="form-header">
-                <h2>Actualizar Ticket</h2>
+                <h1>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h1>
+                <h2>TICKET PAGADO</h2>
+
+                <div class="form-row justify-content-center" >
+                    <div class="form-group col-md-4">
+                        @if (!is_null($ticket->EVIDENCIA_PAGO))
+
+                                <a href="{{ route('exportar.evidencia.pago',
+                                    [
+                                        'nombre' =>$ticket->EVIDENCIA_PAGO,
+                                    ]) }}">
+                                    <label id="archivo_adjunto" name="archivo_adjunto" class="btn btn-outline-success btn-custom">
+                                        Evidencia de Pago
+                                    </label>
+                                </a>
+                        @else
+                            <a href ="{{ redirect()->getUrlGenerator()->previous() }}">
+                                <label id="archivo_adjunto" name="archivo_adjunto" class="btn btn-outline-warning btn-custom">
+                                    Evidencia de Pago - No Disponible
+                                </label>
+                            </a>
+                        @endif
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    @elseif ($ticket->ESTATUS_ACTUAL == 'FINALIZADO' && $ticket->ESTATUS_PAGO == 'NO')
+        <div class="container form-container">
+            <div class="form-header">
+                <h2>Actualizar Estatus Pago</h2>
+                <h3> {{$ticket->FOLIO}}</h3>
             </div>
 
-            <form action=" {{ route('update.ticket', $ticket) }}" method="POST">
+            <form action=" {{ route('update.ticket.finalized', $ticket) }}" method="POST" enctype="multipart/form-data">
 
                 {{-- Redireccionar a rutas de actualizacion  --}}
                 @csrf
-                @method('PATCH')
+                {{-- @method('PATCH') --}}
 
                 <div class="form-row justify-content-center">
 
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-12">
                         <label for="fecha_termino">Fecha Actualizacion</label>
                         <input type="date" class="form-control" id="fecha_termino" name="fecha_termino" value="{{ date("Y-m-d") }}" min="2010-01-01" max="{{ date("Y-m-d") }}" required>
                     </div>
 
+                </div>
 
-
+                <div class="form-row">
                     <div class="form-group col-md-6">
                         <label for="area_atendio">Area Atedió</label>
-                        <select id="area_atendio" name="area_atendio" class="form-control" required>
-                            <option value="{{ $ticket->AREA_RESPONSABLE }}">{{ $ticket->AREA_RESPONSABLE }}</option>
+                        <input type="text" class="form-control" id="area_atendio" name="area_atendio" value="{{ $ticket->AREA_ATENCION }}" readonly>
 
-                            @foreach ($areas as $area)
-                            <option value="{{ $area->NOMBRE }}">{{ $area->NOMBRE }}</option>
-                            @endforeach
-
-                        </select>
-                    </div>
-
-                </div>
-
-
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label for="persona_atendio">Persona Atendió</label>
-                        <input type="text" class="form-control" id="persona_atendio" name="persona_atendio" placeholder="Ingrese el nombre" required>
                     </div>
 
                     <div class="form-group col-md-6">
-                        <label for="actualizar_estatus">Actualizar Estatus</label>
-                        <select id="actualizar_estatus" name="actualizar_estatus" class="form-control" required>
-                            <option value="" >{{ $ticket->ESTATUS_ACTUAL }}</option>
-
-                            <option value="EN PROCESO">EN PROCESO</option>
-                            <option value="FINALIZADO">FINALIZADO</option>
-                        </select>
-
+                        <label for="persona_atendio">Persona Atendió</label>
+                        <input type="text" class="form-control" id="persona_atendio" name="persona_atendio" value="{{ $ticket->PERSONA_ATENCION }}" readonly>
                     </div>
                 </div>
 
-                <div class="form-row">
+                <div class="form-row"  style="align-items: center;">
 
-                    <div class="form-group col-md-12">
+                    <div class="form-group col-md-6">
                         <label for="observaciones_finales">Observaciones Finales</label>
-                        <textarea id="observaciones_finales" name="observaciones_finales" class="form-control" rows="3" maxlength="100" placeholder="Max 100 caracteres" required></textarea>
+                        <textarea id="observaciones_finales" name="observaciones_finales" class="form-control" rows="3" placeholder="{{ $ticket->OBSERVACIONES }}" readonly></textarea>
+                    </div>
+
+                    <div class="form-group col-md-6">
+
+                        {{-- <label for="observaciones_finales">Evidencia de Pago Opcional</label> --}}
+
+                        <input id="archivo_pago" name="archivo_pago" type="file" style="display: none" onchange="cambiarContenido(this)"      /> <br>
+                        <label id="lbl_archivo_pago" for="archivo_pago" class="btn btn-outline-warning" onmouseover="asignarNombre(this)">Adjuntar Documento Evidencia de Pago</label>
+
+                        {{-- <br> --}}
+                        <label for="archivo_pago" class="file-note">Formato libre</label>
                     </div>
                 </div>
+
 
                 <div class="form-row">
                     <div class="form-group col-md-6" style="align-items: center;">
@@ -145,7 +175,7 @@
                     </div>
 
                     <div class="form-group col-md-6">
-                        <button type="submit" class="btn btn-primary btn-custom">Guardar</button>
+                        <button type="submit" class="btn btn-success btn-custom">Pagado</button>
                     </div>
 
                 </div>
@@ -258,11 +288,11 @@
                 </div>
             </div>
         </div>
-    @elseif ($ticket->ESTATUS_AUTORIZACION == 'NO'|| $ticket->ESTATUS_AUTORIZACION == 'ANULADO')
+    @elseif ($ticket->ESTATUS_AUTORIZACION == 'NO')
         <div class="container form-container">
             <div class="form-header">
                 <h2>Actualizar Ticket</h2>
-                <h3>Ticket NO Autorizado</h3>
+                <h3>Ticket NO Finalizado</h3>
 
                 <div class="form-row justify-content-center" >
                     <div class="form-group col-md-4">
@@ -382,5 +412,45 @@
             // Initiate zoom effect:
             imageZoom(item.id, "myresult");
         });
+    </script>
+
+    <script>
+        // MODIFICACION DE ELEMENTOS INPUT FILE
+        let labelArchivo = '';
+
+        function asignarNombre(lbl) {
+            labelArchivo = lbl;
+        }
+
+        function cambiarContenido(inputArchivo) {
+
+            let nombreArchivo = inputArchivo.value;
+            let idExtencion = nombreArchivo.lastIndexOf(".") + 1;
+            let extArchivo = nombreArchivo.substr(idExtencion, nombreArchivo.length).toLowerCase();
+
+            if ( extArchivo=="pdf" || extArchivo=="xlsx" || extArchivo=="docx" || extArchivo=="png" || extArchivo=="jpg" || extArchivo=="jpeg"){
+
+                let nombreArchivo = inputArchivo.files[0].name;
+                if (inputArchivo.value != "") {
+                    labelArchivo.innerHTML = nombreArchivo;
+                    labelArchivo.className = 'btn btn-success'
+
+                }
+
+            }else{
+                inputArchivo.value = "";
+                labelArchivo.className = 'btn btn-outline-danger'
+                labelArchivo.innerHTML = "Formato no reconocido";
+
+            }
+        }
+
+        function cambiarBG(){
+            let inputArchivoPago = document.getElementById('archivo_pago');
+            let lblinputArchivoPago = document.getElementById('lbl_archivo_pago');
+            if (inputArchivoPago.value == ""){
+                lblinputArchivoPago.className = 'btn btn-warning';
+            }
+        }
     </script>
 @endsection

@@ -17,7 +17,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/propuesta','PruebasController@propuesta')->name('propuesta.index');
+Route::get('/storage-link', function () {
+    Artisan::call('storage:link');
+});
+
+Route::get('/portal','LandingController@landing')->name('landing.index');
+Route::get('/portal/videos','LandingController@videosLanding')->name('landing.videos');
 
 
 
@@ -35,6 +40,7 @@ Route::group(['middleware'=>'XSS'], function() {
 
 // TICKETS
     // Solicitud de colecciones
+    Route::get('/tickets/creacion/{id}/Casas','TicketsController@obtenerCasas');
     Route::get('/tickets/creacion/{id}/Directores','TicketsController@obtenerDirectores');
     Route::get('/tickets/creacion/{id}/Drives','TicketsController@obtenerDrives');
     Route::get('/tickets/creacion/{id}/Afecciones','TicketsController@obtenerAfecciones');
@@ -51,12 +57,9 @@ Route::group(['middleware'=>'XSS'], function() {
     Route::get('/tickets/creacion/{id}/Prioridades','TicketsController@obtenerPrioridades');
 
     // Solicitud de Excel
-    Route::get('/exportar/historico/tickets', 'TicketsController@export_historico')->name('tickets.historico');
-    Route::get('/exportar/status/tickets', 'TicketsController@export_status')->name('tickets.status');
-    Route::get('/exportar/consulta/tickets', 'TicketsController@export_dinamic_ticket')->name('tickets.consulta');
-
     Route::get('/exportar/cotizacion/{nombre}', 'TicketsController@exportCotizacion')->name('exportar.cotizacion');
     Route::get('/exportar/autorizacion/{nombre}', 'TicketsController@exportAutorizacion')->name('exportar.autorizacion');
+    Route::get('/exportar/evidenciaPago/{nombre}', 'TicketsController@exportEvidenciaPago')->name('exportar.evidencia.pago');
 
     // Vistas
     Route::get('/tickets/creacion','TicketsController@crearTickets')->name('crear.tickets');
@@ -66,30 +69,37 @@ Route::group(['middleware'=>'XSS'], function() {
 
     Route::get('/tickets/{ticket}/actualizacion','TicketsController@actualizarTickets')->name('actualizar.ticket');
     Route::get('/tickets/{ticket}/historial','TicketsController@historialTickets')->name('historial.ticket');
-    Route::get('/tickets/{ticket}/validacion','TicketsController@validarTickets')->name('validar.ticket');
+    Route::get('/tickets/{ticket}/{encargado}/validacion','TicketsController@validarTickets')->name('validar.ticket');
 
     Route::get('/tickets/{ticket}/{encargado}/cotizacion','TicketsController@cotizarTickets')->name('cotizar.ticket');
     Route::get('/tickets/{ticket}/{encargado}/modificar/cotizacion','TicketsController@modificarCotizacion')->name('modificar.cotizacion.ticket');
-
     Route::get('/tickets/{ticket}/{encargado}/autorizar','TicketsController@autorizarTicket')->name('autorizar.ticket');
 
-
     Route::get('/tickets/pesonal/modificar','TicketsController@modificarPersonal')->name('modificar.personal');
+
+    Route::get('/tickets/consultar/finalizado','TicketsController@consultarTicketsFinalizados')->name('consultar.ticket.finalizado');
+    Route::get('/tickets/{ticket}/actualizacion/finalizado','TicketsController@actualizarTicketsFinalizados')->name('actualizar.ticket.finalizado');
+
 
     // FORMULARIOS TICKETS
     // CRUD Tickets
     Route::post('tickets/create','TicketsController@crear')->name('create.ticket');
     Route::post('tickets/consult','TicketsController@consultar')->name('consult.ticket');
-    Route::patch('tickets/validate/{ticket}','TicketsController@validar')->name('validate.ticket');
+    Route::patch('tickets/validate/{ticket}/{usuario}','TicketsController@validar')->name('validate.ticket');
     Route::post('tickets/cancel/{ticket}','TicketsController@cancelar')->name('cancel.ticket');
     Route::patch('tickets/quote/{ticket}/{usuario}','TicketsController@cotizar')->name('quote.ticket');
     Route::patch('tickets/authorize/{ticket}/{usuario}','TicketsController@autorizar')->name('authorize.ticket');
+
+    Route::post('tickets/invalidate/{ticket}/{usuario}','TicketsController@anular')->name('invalidate.ticket');
+
     Route::patch('tickets/update/{ticket}','TicketsController@actualizar')->name('update.ticket');
+    Route::post('tickets/update/{ticket}/finalizado','TicketsController@actualizarFinalizado')->name('update.ticket.finalized');
 
     // CRUD Personal Registrado
     Route::post('tickets/update/personal/delete/relations','TicketsController@eliminarRelacionPersonal')->name('eliminar.relacion.personal');
     Route::post('tickets/update/personal/delete/person','TicketsController@eliminarPersonal')->name('eliminar.personal');
     Route::post('tickets/update/personal/assign/person','TicketsController@asignarPersonal')->name('asignar.personal');
+    Route::patch('tickets/update/personal/assign/mail','TicketsController@asignarCorreo')->name('asignar.correo.casa');
     Route::post('tickets/update/personal/create/person','TicketsController@crearPersonal')->name('crear.personal');
 
 });

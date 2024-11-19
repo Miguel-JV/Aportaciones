@@ -23,6 +23,16 @@
             transition: 0.8s ease-in-out;
         }
 
+        .btn-outline-custom-color, .btn-outline-custom-color:hover, .btn-outline-custom-color:active, .btn-outline-custom-color:visited {
+            background-color: transparent !important;
+            border-color: #24a464 !important;
+            color: #24a464 !important;
+        }
+
+        .btn-outline-custom-color:hover{
+            background-color: #24a464 !important;
+            color: white !important;
+        }
 
     </style>
 @endsection
@@ -34,7 +44,7 @@
         <ul class="nav nav-tabs justify-content-center">
 
             <li class="nav-item">
-                <a class="nav-link active" href="{{ route('consultar.ticket') }}"> <i class="fa-solid fa-house"></i> Panel </a>
+                <a class="nav-link" href="{{ route('consultar.ticket') }}"> <i class="fa-solid fa-house"></i> Panel </a>
             </li>
 
             <li class="nav-item">
@@ -46,16 +56,15 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('consultar.ticket.finalizado') }}"> <i class="fa-regular fa-money-bill-1"></i> Finalizados</a>
+                <a class="nav-link active" href="{{ route('consultar.ticket.finalizado') }}"> <i class="fa-regular fa-money-bill-1"></i> Finalizados</a>
             </li>
 
         </ul>
 
     <div class="container mt-5">
-        <h2 class="text-center mb-4 mt-2">Listado de Tickets</h2>
         <div class="table-responsive">
-            <table id="ticketsTable" class="table table-striped table-bordered table-sm  table-hover" style="text-align:center;">
-                <thead class="thead-dark ">
+            <table id="ticketsTable" class="table table-striped  table-sm  table-hover" style="text-align:center;">
+                <thead class="">
                     <tr>
                         <th class="dt-center">FOLIO</th>
                         <th class="dt-center">PRIORIDAD</th>
@@ -84,22 +93,9 @@
 
                             <td >
 
-                                @if ($ticket->ESTATUS_AUTORIZACION == 'SI')
-                                    <a href="{{ route('actualizar.ticket', $ticket) }}" class="btn btn-outline-info">
-                                        <i class="fa-regular fa-pen-to-square"></i>
-                                    </a>
-
-                                @elseif ($ticket->REINCIDENCIA == 'SI' || $ticket->AREA_RESPONSABLE == 'SEDENA' || $ticket->AREA_RESPONSABLE == 'SEMAR' || $ticket->DAÑO == 'Siniestro - Temblor' || $ticket->DAÑO == 'Siniestro - Desastre Meteorilógico')
-                                    <a href="{{ route('actualizar.ticket', $ticket) }}" class="btn btn-outline-warning">
-                                        <i class="fa-regular fa-pen-to-square"></i>
-                                    </a>
-
-                                @else
-                                <a href="{{ route('actualizar.ticket', $ticket) }}" class="btn btn-outline-danger">
-                                    <i class="fa-solid fa-ban"></i>
+                                <a href="{{ route('actualizar.ticket.finalizado', $ticket) }}" class="btn btn-outline-custom-color">
+                                    <i class="fa-solid fa-file-invoice"></i>
                                 </a>
-
-                                @endif
 
                             </td>
 
@@ -114,15 +110,6 @@
 
                 </tbody>
             </table>
-        </div>
-        <div class="text-center">
-
-            <a href="{{ route('crear.tickets') }}" class="btn btn-primary btn-custom-end-dataTable">
-                <i class="fa-regular fa-square-plus"></i>
-                Capturar Ticket
-            </a>
-
-
         </div>
     </div>
 

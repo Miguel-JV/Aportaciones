@@ -121,9 +121,11 @@
             <br>
         @endforeach
 
-        <a href="{{ route('consultar.ticket') }}" class="btn btn-outline-dark ">
+        <a href="{{ redirect()->getUrlGenerator()->previous() }}" class="btn btn-outline-dark ">
             <i class="fa-solid fa-chevron-left"></i>
         </a>
+
+
     </div>
 @endsection
 

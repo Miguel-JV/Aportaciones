@@ -17,7 +17,7 @@ class CreateCasasTable extends Migration
             $table->increments('ID_CASA');
             $table->string('NOMBRE', 45)->charset('utf8');
             $table->string('ESTATUS', 45)->charset('utf8');
-            $table->string('CORREO', 100)->charset('utf8');
+            $table->string('CORREO', 100)->charset('utf8')->nullable();;
             // $table->timestamps();
         });
     }

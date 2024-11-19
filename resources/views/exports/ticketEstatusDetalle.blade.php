@@ -1,5 +1,6 @@
 <table>
     <tbody>
+        {{-- PENDIENTES --}}
         <tr>
             <th colspan="7"  style=" border-top: solid; border-bottom: solid; color: #000000; background-color: #76b5c5;" valign='middle' align='center' bgcolor='#76b5c5'>
                 <b>PENDIENTE A REALIZAR</b>
@@ -7,26 +8,25 @@
         </tr>
 
         <tr>
-            {{-- PENDIENTES --}}
-            <th  width="15" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>SITIO</b>
             </th>
-            <th  width="25" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>AREA</b>
             </th>
-            <th  width="25" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>GERENTE</b>
             </th>
-            <th  width="8" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>FECHA<br>INICIO</b>
             </th>
-            <th  width="11" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>COTIZACION</b>
             </th>
-            <th  width="11" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>FECHA<br>COMPROMISO</b>
             </th>
-            <th  width="25" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>DETALLE</b>
             </th>
         </tr>
@@ -65,25 +65,25 @@
         </tr>
 
         <tr>
-            <th  width="15" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>SITIO</b>
             </th>
-            <th  width="25" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>AREA</b>
             </th>
-            <th  width="25" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>GERENTE</b>
             </th>
-            <th  width="8" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>FECHA<br>INICIO</b>
             </th>
-            <th  width="11" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>COTIZACION</b>
             </th>
-            <th  width="11" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>FECHA<br>COMPROMISO</b>
             </th>
-            <th  width="25" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>DETALLE</b>
             </th>
         </tr>
@@ -122,25 +122,25 @@
         </tr>
 
         <tr>
-            <th  width="15" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>SITIO</b>
             </th>
-            <th  width="25" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>AREA</b>
             </th>
-            <th  width="25" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>GERENTE</b>
             </th>
-            <th  width="8" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>FECHA<br>INICIO</b>
             </th>
-            <th  width="11" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>COTIZACION</b>
             </th>
-            <th  width="11" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>FECHA<br>COMPROMISO</b>
             </th>
-            <th  width="25" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle ' align='center' bgcolor='#FFFFFF'>
+            <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>DETALLE</b>
             </th>
         </tr>

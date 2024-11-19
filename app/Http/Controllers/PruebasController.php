@@ -11,103 +11,6 @@ class PruebasController extends Controller
         return view('Pruebas.index',compact('mensaje'));
     }
 
-// Metodo de obtencion de registros totales por repetición de registros por zona y entidad
-/*
-    public function  detalle_general (){
-        $chunk  = self::cargarJson('app/archivos/general.json', 1000);
-
-        $sedena         = [];
-        $gn             = [];
-
-        $regiones_sdn   = [];
-        $estructura_regiones =
-                        [
-                        ''=>0,
-                        'i'=>0,
-                        'ii' =>0,
-                        'iii' =>0,
-                        'iv' =>0,
-                        'v' =>0,
-                        'vi' =>0,
-                        'vii' =>0,
-                        'viii' =>0,
-                        'ix' =>0,
-                        'x' =>0,
-                        'xi' =>0,
-                        'xii' =>0];
-        $regiones_gn    = []; $reg_gn_estr = [];
-
-        $zonas_sdn      = []; $zon_sdn_estr = [];
-        $zonas_gn       = []; $zon_gn_estr = [];
-
-        $estados_gn     = []; $est_gn_estr = [];
-
-        // 5 entidad - 6 region - 7 zona militar - 8 estado
-        foreach ($chunk as $dato) {
-            if(mb_strtolower($dato[5]) == 'sedena'){
-                $sedena         = self::union($dato[5], $sedena);
-                $regiones_sdn   = self::union($dato[6], $regiones_sdn);
-                $zonas_sdn      = self::union($dato[7], $zonas_sdn);
-            }
-            if(mb_strtolower($dato[5]) == 'guardia nacional'){
-                $gn             = self::union($dato[5], $gn);
-                $regiones_gn    = self::union($dato[6], $regiones_gn);
-                $zonas_gn       = self::union($dato[7], $zonas_gn);
-                $estados_gn     = self::union($dato[8], $estados_gn);
-            }
-        }
-
-        // Cuenta de resultados filtrados por su estructura (estr) clave valor
-        $sedena         = self::cuentaFiltrada($sedena, $sedena);
-        $regiones_sdn   = self::cuentaFiltrada($regiones_sdn,$estructura_regiones );
-        $zonas_sdn      = self::cuentaFiltrada($zonas_sdn, $zon_sdn_estr);
-
-
-        $gn             = self::cuentaFiltrada($gn, $gn);
-        $regiones_gn    = self::cuentaFiltrada($regiones_gn, $estructura_regiones);
-        $zonas_gn       = self::cuentaFiltrada($zonas_gn, $zon_gn_estr);
-        $estados_gn     = self::cuentaFiltrada($estados_gn, $est_gn_estr);
-
-
-        return view('Pruebas.index',compact(
-            'sedena', 'regiones_sdn', 'zonas_sdn',
-            'gn', 'regiones_gn', 'zonas_gn','estados_gn',
-
-        ));
-    }
-
-    public function union($dato, $arreglo){
-        if (is_string($dato)) {
-            $aux = [mb_strtolower($dato)];
-            return array_merge($arreglo,$aux);
-        }
-    }
-
-    public function cuentaFiltrada($arreglo , $estructura_arr){
-        $palabras = [];
-        $resultado = 0;
-
-        $cuenta = array_count_values($arreglo);
-        $palabras = array_filter($cuenta, function($count){
-            return $count > 0 ;
-        });
-
-        //  Eliminar valores vacíos
-        // foreach ($palabras as $key => $value) {
-        //     if ($key == "") {
-        //         unset($palabras[$key]);
-        //     }
-        // }
-
-        ksort($palabras, SORT_NATURAL);
-        foreach ($palabras as $key => $value) {
-            $resultado += $value;
-            $estructura_arr[$key] = $value;
-        }
-        $estructura_arr["TOTAL:"] = $resultado;
-        return $estructura_arr;
-    }
-*/
     public function cargarJson($ruta, $chunksize){
         $archivoJson = file_get_contents(storage_path($ruta));
 
@@ -135,7 +38,6 @@ class PruebasController extends Controller
 
         return $data;
     }
-
 
 //Vista real
     public function reporte(){
@@ -190,8 +92,4 @@ class PruebasController extends Controller
         return view('Pruebas.reporte_sdn_gn',compact('chunk_CE','chunk_GENERAL_GN', 'chunk_GENERAL_SDN', 'totales'));
     }
 
-    public function propuesta(){
-        $mensaje = 'mensaje';
-        return view('Pruebas.propuesta', compact('mensaje'));
-    }
 }

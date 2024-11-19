@@ -6,27 +6,11 @@
 @endsection
 
 @section('css')
-    {{-- Zoom 1 --}}
     <style>
-        .container-enlarge {
-            display: inline-block;
-            position: relative;
-        }
-        .container-enlarge > img {
-            height: auto;
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 5px;
-        }
-        .container-enlarge span {
-            position: absolute;
-            top: -9999em;
-            left: -9999em;
-        }
-        .container-enlarge:hover span {
-            top: -300px;
-            left: -70px;
-            width: 400px;
+        .file-note{
+            color: gray;
+            font-style:italic;
+            font-family: cursive;
         }
 
 
@@ -83,176 +67,188 @@
 
 
 @section('contenido')
-        <div class="container form-container ">
-            <div class="form-header">
-                <h1>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h1>
-                <h2> Modificar Cotizacion</h2>
-                <h3>{{ $decrypted }} </h3>
-            </div>
-
-            <form action=" {{ route('quote.ticket',
-                [
-                    'ticket' => $ticket,
-                    'usuario' => $decrypted,
-                ])
-            }}" enctype="multipart/form-data" method="POST" onsubmit="showLoading()"  >
-
-                {{-- Redireccionar a rutas de actualizacion  --}}
-                @csrf
-                @method('PATCH')
-
-                <div class="form-row mt-5">
-                    <div class="form-group col-md-6">
-
-                        @if ($ticket->AREA_RESPONSABLE == 'Publicidad' || $ticket->AREA_RESPONSABLE == 'PEMSA - Seguridad Industrial' || $ticket->AREA_RESPONSABLE == 'FYCSA')
-                        <label for="monto" style="color: #ffc107;">Monto Aproximado Opcional ($MXN)</label>
-                        <input type="number"  class="form-control" id="monto" name="monto" min="0.00"  step="0.01" placeholder="0.00"/>
-
-                        @else
-                        <label for="monto">Monto Aproximado ($MXN)</label>
-                        <input type="number"  class="form-control" id="monto" name="monto" min="0.00"  step="0.01" placeholder="0.00" required/>
-                        @endif
-
-                    </div>
-
-                    <div class="form-group col-md-6">
-                        <label for="fecha_compromiso">Fecha Compromiso</label>
-                        <input type="date" class="form-control" id="fecha_compromiso" name="fecha_compromiso" value="{{ date("Y-m-d") }}" min="{{ date("Y-m-d") }}"  required>
-                    </div>
-                </div>
-
-
-                <div class="form-row">
-
-                    <div class="form-group col-md-4">
-
-                        <label for="foto_evidencia_1">Foto Evidencia</label><br>
-                        <div class="img-zoom-container">
-                            <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_OBLIGATORIA)}}" >
-                        </div>
-                    </div>
-
-                    <div class="form-group col-md-4">
-
-                        <label for="foto_evidencia_1">Foto Evidencia</label><br>
-                        <div class="img-zoom-container">
-                            <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_2)}}" >
-
-                            {{-- Imagen de Acercamiento --}}
-                            <div id="myresult" class="img-zoom-result"></div>
-                        </div>
-                    </div>
-
-                    <div class="form-group col-md-4">
-
-                        <label for="foto_evidencia_1">Foto Evidencia</label><br>
-                        <div class="img-zoom-container">
-                            <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_3)}}" >
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="form-row justify-content-center">
-                    <div class="form-group col-md-6">
-
-                        <input id="archivo_opcional" name="archivo_opcional" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".xlsx"  /> <br>
-                        <label id="lbl_archivo_opcional" for="archivo_opcional" class="btn btn-outline-warning" onmouseover="asignarNombre(this)">Adjuntar Documento Opcional</label>
-                    </div>
-
-                    <div class="form-group col-md-4" style="align-items: center;">
-                        <label for="detalle"></label>
-
-                        <label id="detalle" name="detalle" class="btn btn-outline-info btn-custom" data-toggle="modal" data-target="#modal">
-                            Detalle
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-row justify-content-center" style="text-align: center">
-                    <div class="form-group col-md-9">
-
-                        <label for="justificacion" >Justificacion de Modificación</label>
-                        <textarea class="form-control" name="justificacion" id="justificacion" rows="3" maxlength="100" placeholder="Max 100 Caracteres" required></textarea>
-                    </div>
-
-                </div>
-
-
-
-                <div class="form-row">
-
-                    <div class="form-group col-md-6">
-                        <button type="submit" class="btn btn-success btn-custom">Guardar Cotización</button>
-                    </div>
-
-                    <div class="form-group col-md-6">
-                        <a  class="btn btn-danger btn-custom" href="{{ route('consultar.ticket') }}">Cancelar Cotización</a>
-                    </div>
-
-                </div>
-
-            </form>
-        </div>
-
-            <!-- Modal -->
-        <div class="modal fade " id="modal" tabindex="-1" role="dialog" aria-labelledby="tituloModal" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="tituloModalCentrado">Detalle</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-
-                    <div class="modal-body">
-                        <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label for="casa">Area</label>
-                                <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->AREA_RESPONSABLE }}" readonly>
-                            </div>
-
-                            <div class="form-group col-md-4">
-                                <label for="casa">Afección</label>
-                                <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->AFECCION }}" readonly>
-                            </div>
-
-                            <div class="form-group col-md-4">
-                                <label for="casa">Sitio</label>
-                                <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->SITIO }}" readonly>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label for="casa">Espacio</label>
-                                <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->ESPACIO }}" readonly>
-                            </div>
-
-                            <div class="form-group col-md-4">
-                                <label for="casa">Objeto</label>
-                                <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->OBJETO }}" readonly>
-                            </div>
-
-                            <div class="form-group col-md-4">
-                                <label for="casa">Elemento</label>
-                                <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->ELEMENTO }}" readonly>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group col-md-12">
-                                <label for="descripcion_concreta">Descripción Concreta</label>
-                                <textarea id="descripcion_concreta" name="descripcion_concreta" class="form-control" rows="4" maxlength="100" placeholder="{{ $ticket->DETALLE }}" readonly></textarea>
-                            </div>
-                        </div>
-                    </div>
+        @if ($ticket->ESTATUS_AUTORIZACION == 'SI')
+            <div class="container form-container">
+                <div class="form-header">
+                    <h1>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h1>
+                    <h2>TICKET AUTORIZADO</h2>
+                    <h3>No se permiten más cotizaciones</h3>
 
                 </div>
             </div>
-        </div>
+        @else
+            <div class="container form-container ">
+                <div class="form-header">
+                    <h1>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h1>
+                    <h2> Modificar Cotizacion</h2>
+                    <h3>{{ $decrypted }} </h3>
+                </div>
 
+                <form action=" {{ route('quote.ticket',
+                    [
+                        'ticket' => $ticket,
+                        'usuario' => $decrypted,
+                    ])
+                }}" enctype="multipart/form-data" method="POST" onsubmit="showLoading()"  >
+
+                    {{-- Redireccionar a rutas de actualizacion  --}}
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="form-row mt-5">
+                        <div class="form-group col-md-6">
+
+                            @if ($ticket->AREA_RESPONSABLE == 'Publicidad' || $ticket->AREA_RESPONSABLE == 'PEMSA - Seguridad Industrial' || $ticket->AREA_RESPONSABLE == 'FYCSA')
+                            <label for="monto" style="color: #ffc107;">Monto Aproximado Opcional ($MXN)</label>
+                            <input type="number"  class="form-control" id="monto" name="monto" min="0.00"  step="0.01" placeholder="0.00"/>
+
+                            @else
+                            <label for="monto">Monto Aproximado ($MXN)</label>
+                            <input type="number"  class="form-control" id="monto" name="monto" min="0.00"  step="0.01" placeholder="0.00" required/>
+                            @endif
+
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="fecha_compromiso">Fecha Compromiso</label>
+                            <input type="date" class="form-control" id="fecha_compromiso" name="fecha_compromiso" value="{{ date("Y-m-d") }}" min="{{ date("Y-m-d") }}"  required>
+                        </div>
+                    </div>
+
+
+                    <div class="form-row">
+
+                        <div class="form-group col-md-4">
+
+                            <label for="foto_evidencia_1">Foto Evidencia</label><br>
+                            <div class="img-zoom-container">
+                                <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_OBLIGATORIA) }}" >
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-4">
+
+                            <label for="foto_evidencia_1">Foto Evidencia</label><br>
+                            <div class="img-zoom-container">
+                                <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_2) }}" >
+
+                                {{-- Imagen de Acercamiento --}}
+                                <div id="myresult" class="img-zoom-result"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-4">
+
+                            <label for="foto_evidencia_1">Foto Evidencia</label><br>
+                            <div class="img-zoom-container">
+                                <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_3) }}" >
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="form-row justify-content-center">
+                        <div class="form-group col-md-6">
+
+                            <input id="archivo_opcional" name="archivo_opcional" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".docx, .pdf, .xlsx"  /> <br>
+                            <label id="lbl_archivo_opcional" for="archivo_opcional" class="btn btn-outline-warning" onmouseover="asignarNombre(this)">Adjuntar Documento Opcional</label>
+                            <br>
+                            <label for="archivo_pago" class="file-note" >Archivos .docx, .pdf, .xlsx</label>
+                        </div>
+
+                        <div class="form-group col-md-4" style="align-items: center;">
+                            <label for="detalle"></label>
+
+                            <label id="detalle" name="detalle" class="btn btn-outline-info btn-custom" data-toggle="modal" data-target="#modal">
+                                Detalle
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-row justify-content-center" style="text-align: center">
+                        <div class="form-group col-md-9">
+
+                            <label for="justificacion" >Justificacion de Modificación</label>
+                            <textarea class="form-control" name="justificacion" id="justificacion" rows="3" maxlength="100" placeholder="Max 100 Caracteres" required></textarea>
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="form-row">
+
+                        <div class="form-group col-md-6">
+                            <button type="submit" class="btn btn-success btn-custom">Guardar Cotización</button>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <a  class="btn btn-danger btn-custom" href="{{ route('consultar.ticket') }}">Cancelar Cotización</a>
+                        </div>
+
+                    </div>
+
+                </form>
+            </div>
+
+                <!-- Modal -->
+            <div class="modal fade " id="modal" tabindex="-1" role="dialog" aria-labelledby="tituloModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="tituloModalCentrado">Detalle</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label for="casa">Area</label>
+                                    <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->AREA_RESPONSABLE }}" readonly>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <label for="casa">Afección</label>
+                                    <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->AFECCION }}" readonly>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <label for="casa">Sitio</label>
+                                    <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->SITIO }}" readonly>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label for="casa">Espacio</label>
+                                    <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->ESPACIO }}" readonly>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <label for="casa">Objeto</label>
+                                    <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->OBJETO }}" readonly>
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <label for="casa">Elemento</label>
+                                    <input type="text" class="form-control" id="casa" name="casa" value="{{ $ticket->ELEMENTO }}" readonly>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-12">
+                                    <label for="descripcion_concreta">Descripción Concreta</label>
+                                    <textarea id="descripcion_concreta" name="descripcion_concreta" class="form-control" rows="4" maxlength="100" placeholder="{{ $ticket->DETALLE }}" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        @endif
 
 
 @endsection
@@ -272,7 +268,7 @@
             let idExtencion = nombreArchivo.lastIndexOf(".") + 1;
             let extArchivo = nombreArchivo.substr(idExtencion, nombreArchivo.length).toLowerCase();
 
-            if (extArchivo=="xlsx"){
+            if (extArchivo=="docx" || extArchivo=="pdf" ||extArchivo=="xlsx"){
 
                 let nombreArchivo = inputArchivo.files[0].name;
                 if (inputArchivo.value != "") {
@@ -284,7 +280,7 @@
             }else{
                 inputArchivo.value = "";
                 labelArchivo.className = 'btn btn-outline-warning'
-                labelArchivo.innerHTML = "Adjuntar Documento XLSX";
+                labelArchivo.innerHTML = "Adjuntar Formato docx, pdf, xlsx";
 
             }
         }

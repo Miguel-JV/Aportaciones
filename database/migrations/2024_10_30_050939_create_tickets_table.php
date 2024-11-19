@@ -57,6 +57,9 @@ class CreateTicketsTable extends Migration
             $table->string('ESTATUS_COTIZACION', 50)->nullable();
             $table->string('ESTATUS_AUTORIZACION', 100)->nullable();
             $table->string('ESTATUS_ACTUAL', 100)->nullable();
+            $table->string('ESTATUS_PAGO', 100)->nullable();
+
+            $table->string('EVIDENCIA_PAGO', 100)->nullable();
 
             $table->date('FECHA_FIN')->nullable();
             $table->string('AREA_ATENCION', 100)->nullable();

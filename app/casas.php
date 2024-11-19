@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\areas;
 
 
 class casas extends Model
@@ -17,6 +18,9 @@ class casas extends Model
     protected $primaryKey = 'ID_CASA';
     public $timestamps = false;
 
+    public function coordinador_casa(){
+        return $this->belongsToMany('\App\coordinadores', 'coordinadores_casas', 'ID_CASA', 'ID_COORDINADOR');
+    }
 
     public function encargados_casa(){
         return $this->belongsToMany('\App\encargados', 'encargados_casas', 'ID_CASA', 'ID_ENCARGADO');
@@ -32,6 +36,11 @@ class casas extends Model
 
     public function gerente_casa(){
         return $this->belongsToMany('\App\encargados', 'encargados_casas', 'ID_CASA', 'ID_ENCARGADO')->where('PUESTO', 'GERENTE');
+    }
+
+    public function encargados_finanzas(){
+        $id_finanzas = areas::where('NOMBRE','Finanzas Filiales')->first()->ID_AREA;
+        return $this->belongsToMany('\App\encargados', 'encargados_casas', 'ID_CASA', 'ID_ENCARGADO')->where('ID_AREA', $id_finanzas);
     }
 
 

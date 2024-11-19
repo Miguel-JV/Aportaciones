@@ -107,8 +107,12 @@
                 <h2>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h2>
                 <h3>{{ $ticket->FECHA_INICIO }} </h3>
             </div>
-
-            <form action=" {{ route('validate.ticket', $ticket) }}" method="POST" onsubmit="showLoading()" >
+    {{--  $ticket, $encargado --}}
+            <form action=" {{ route('validate.ticket',
+                    [
+                        'ticket' => $ticket,
+                        'usuario' => $encargado,
+                    ]) }}" method="POST" onsubmit="showLoading()" >
 
                 {{-- Redireccionar a rutas de actualizacion  --}}
                 @csrf
@@ -208,7 +212,7 @@
 
                         <label for="foto_evidencia_1">Foto Evidencia</label><br>
                         <div class="img-zoom-container">
-                            <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_OBLIGATORIA)}}" >
+                            <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_OBLIGATORIA) }}" >
                         </div>
                     </div>
 
@@ -216,7 +220,7 @@
 
                         <label for="foto_evidencia_1">Foto Evidencia</label><br>
                         <div class="img-zoom-container">
-                            <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_2)}}" width="auto" height="290">
+                            <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_2) }}" width="auto" height="290">
                             {{-- Imagen de Acercamiento --}}
                             <div id="myresult" class="img-zoom-result"></div>
                         </div>
@@ -226,7 +230,7 @@
 
                         <label for="foto_evidencia_1">Foto Evidencia</label><br>
                         <div class="img-zoom-container">
-                            <img id="myimage_3" data-id="myimage_3" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_3)}}" width="auto" height="290">
+                            <img id="myimage_3" data-id="myimage_3" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_3) }}" width="auto" height="290">
                         </div>
                     </div>
                 </div>

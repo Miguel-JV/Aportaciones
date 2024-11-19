@@ -84,7 +84,7 @@
 
                 <div class="links">
                     <a href="{{ route('pruebas') }}">Pruebas</a>
-                    <a href="{{ route('propuesta.index') }}">Propuesta</a>
+                    <a href="{{ route('landing.index') }}">Propuesta</a>
                 </div>
             </div>
         </div>

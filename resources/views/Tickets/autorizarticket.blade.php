@@ -15,6 +15,12 @@
             background-color: #ededed;
         }
 
+        .file-note{
+            color: gray;
+            font-style:italic;
+            font-family: cursive;
+        }
+
     </style>
 
     {{-- Zoom 2 --}}
@@ -64,7 +70,50 @@
 
 
 @section('contenido')
-    @if ($ticket->ESTATUS_AUTORIZACION == 'NO')
+    @if ($ticket->ESTATUS_AUTORIZACION == 'SI')
+        <div class="container form-container">
+            <div class="form-header">
+                <h1>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h1>
+                <h2>TICKET AUTORIZADO</h2>
+                <h3>No se permiten más autorizaciones.</h3>
+
+                <div class="form-row justify-content-center">
+                    <div class="form-group col-md-4 mt-5">
+                        @if (!is_null($ticket->ARCHIVO_AUTORIZACION))
+
+                            <a href="{{ route('exportar.autorizacion',
+                                [
+                                    'nombre' =>$ticket->ARCHIVO_AUTORIZACION,
+                                ]) }}">
+                                <label id="archivo_adjunto" name="archivo_adjunto" class="btn btn-outline-success btn-custom">
+                                    Archivo de Autorización
+                                </label>
+                            </a>
+                        @else
+                                <label id="archivo_adjunto" name="archivo_adjunto" class="btn btn-outline-warning btn-custom">
+                                    Archivo de Autorización - No Disponible
+                                </label>
+                        @endif
+
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    @elseif($ticket->ESTATUS_AUTORIZACION == 'ANULADO')
+        <div class="container form-container">
+            <div class="form-header">
+                <h1>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h1>
+                <h2>TICKET NO AUTORIZADO</h2>
+                <h3>No se permiten más autorizaciones.</h3>
+
+            </div>
+
+
+        </div>
+    @elseif($ticket->ESTATUS_AUTORIZACION == 'NO')
         <div class="container form-container" >
             <div class="form-header">
                 <h1>Autorizar Ticket</h1><br>
@@ -108,8 +157,20 @@
                     </div>
 
                     <div class="form-group col-md-3">
-                        <input id="archivo_firmado" name="archivo_firmado" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".xlsx, .pdf"   required  /> <br>
-                        <label id="lbl_archivo_firmado" for="archivo_firmado" class="btn btn-outline-dark" onmouseover="asignarNombre(this)">Adjuntar Documento Autorizacion</label>
+                        @if ($ticket->AREA_RESPONSABLE == 'Publicidad' || $ticket->AREA_RESPONSABLE == 'PEMSA - Seguridad Industrial' || $ticket->AREA_RESPONSABLE == 'FYCSA')
+                            <input id="archivo_firmado" name="archivo_firmado" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".xlsx, .pdf"    /> <br>
+                            <label id="lbl_archivo_firmado" for="archivo_firmado" class="btn btn-outline-warning" onmouseover="asignarNombre(this)">Adjuntar Documento Opcional</label>
+                            <br>
+                            <label for="archivo_pago" class="file-note" >Archivos .xlsx, .pdf</label>
+
+                        @else
+
+                            <input id="archivo_firmado" name="archivo_firmado" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".xlsx, .pdf"   required  /> <br>
+                            <label id="lbl_archivo_firmado" for="archivo_firmado" class="btn btn-outline-dark" onmouseover="asignarNombre(this)">Adjuntar Documento Autorizacion</label>
+                            <br>
+                            <label for="archivo_pago" class="file-note" >Archivos .xlsx, .pdf</label>
+
+                        @endif
                     </div>
 
                     <div class="form-group col-md-3" style="align-items: center;">
@@ -129,7 +190,7 @@
 
                         <label for="foto_evidencia_1">Foto Evidencia</label><br>
                         <div class="img-zoom-container">
-                            <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_OBLIGATORIA)}}" >
+                            <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_OBLIGATORIA) }}" >
                         </div>
                     </div>
 
@@ -137,7 +198,7 @@
 
                         <label for="foto_evidencia_1">Foto Evidencia</label><br>
                         <div class="img-zoom-container">
-                            <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_2)}}" >
+                            <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_2) }}" >
 
                             {{-- Imagen de Acercamiento --}}
                             <div id="myresult" class="img-zoom-result"></div>
@@ -148,7 +209,7 @@
 
                         <label for="foto_evidencia_1">Foto Evidencia</label><br>
                         <div class="img-zoom-container">
-                            <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_3)}}" >
+                            <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_3) }}" >
                         </div>
                     </div>
 
@@ -159,7 +220,7 @@
 
 
                     <div class="form-group col-md-3">
-                        <a  class="btn btn-outline-danger btn-custom" href="{{ route('consultar.ticket') }}"> Cancelar </a>
+                        <label id="cancelar" class="btn btn-outline-danger btn-custom" data-toggle="modal" data-target="#modal-cancelacion" data-encargado="{{$decrypted}}" >Cancelar</label>
                     </div>
                     <div class="form-group col-md-3">
                         <button type="submit" class="btn btn-success btn-custom"  onclick="cambiarBG()" >Autorizar</button>
@@ -234,37 +295,41 @@
             </div>
         </div>
 
-    @else
-        <div class="container form-container">
-            <div class="form-header">
-                <h1>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h1>
-                <h2>TICKET AUTORIZADO</h2>
-                <h3>No se permiten más autorizaciones.</h3>
+        {{-- MODAL CANCELACION --}}
+        <div class="modal fade" id="modal-cancelacion" tabindex="-1" aria-labelledby="modal" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modal_cancelacion_titulo">Fallo al obtener nombre</h5>
+                    </div>
+                    <div class="modal-body">
 
-                <div class="form-row justify-content-center">
-                    <div class="form-group col-md-4 mt-5">
-                        @if (!is_null($ticket->ARCHIVO_AUTORIZACION))
+                        <div class="container form-container" style="margin-top:10px;";>
+                            <form action=" {{ route('invalidate.ticket',[
+                                'ticket' => $ticket,
+                                'usuario' => $decrypted
+                                ]) }}" method="POST">
+                                {{-- Redireccionar a rutas de controlador  --}}
+                                @csrf
 
-                            <a href="{{ route('exportar.autorizacion',
-                                [
-                                    'nombre' =>$ticket->ARCHIVO_AUTORIZACION,
-                                ]) }}">
-                                <label id="archivo_adjunto" name="archivo_adjunto" class="btn btn-outline-success btn-custom">
-                                    Archivo de Autorización
-                                </label>
-                            </a>
-                        @else
-                                <label id="archivo_adjunto" name="archivo_adjunto" class="btn btn-outline-warning btn-custom">
-                                    Archivo de Autorización - No Disponible
-                                </label>
-                        @endif
+                                <div class="form-row">
+
+                                    <div class="form-group col-md-12">
+                                        <label for="mensaje" class="col-form-label">Mensaje:</label>
+                                        <input class="form-control" id="mensaje" name="mensaje" rows="3" maxlength="300" placeholder="Max 300 caracteres" required>
+                                    </div>
+
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-outline-primary" >Enviar</button>
+                                </div>
+                            </form>
+                        </div>
 
                     </div>
                 </div>
-
             </div>
-
-
         </div>
     @endif
 
@@ -360,6 +425,18 @@
             imageZoom(item.id, "myresult");
         });
     </script>
+    {{-- MODAL CANCELACION --}}
+    <script>
+        $('#modal-cancelacion').on('show.bs.modal', function (event) {
+            const linkModal = $(event.relatedTarget);
+            const modal = $(this);
+            let mensaje = linkModal.data('encargado');
+
+            modal.find('#modal_cancelacion_titulo').html(mensaje);
+
+        });
+
+    </script>
 
     <script>
         // MODIFICACION DE ELEMENTOS INPUT FILE
@@ -387,7 +464,7 @@
             }else{
                 inputArchivo.value = "";
                 labelArchivo.className = 'btn btn-outline-danger'
-                labelArchivo.innerHTML = "Formato Incorrecto";
+                labelArchivo.innerHTML = "Adjuntar Formato pdf, xlsx";
 
             }
         }

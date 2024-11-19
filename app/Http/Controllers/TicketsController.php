@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 // Controlador de Modelos
+use DB;
+
 use App\casas;
 use App\directores;
 use App\drives;
@@ -15,6 +17,7 @@ use App\sitios;
 use App\espacios;
 use App\objetos;
 use App\elementos_objetos;
+use App\coordinadores;
 use App\tickets;
 
 use App\encargados;
@@ -33,7 +36,9 @@ use App\Mail\GeneracionTicket;
 use App\Mail\ObservacionesTicket;
 use App\Mail\CotizacionTicket;
 use App\Mail\AutorizacionTicket;
+use App\Mail\AnulacionTicket;
 use App\Mail\NotificacionTicketDirecto;
+use App\Mail\ReporteMensualMantenimientos;
 
 
 // Obtención de campos
@@ -41,6 +46,8 @@ use Illuminate\Http\Request;
 
 // Dependencias de Excel
 use App\Exports\consultaCompuestaTickets;
+use App\Exports\consultaCompuestaSedena;
+use App\Exports\consultaCompuestaSemar;
 use Maatwebsite\Excel\Facades\Excel;
 
 use App\Exports\ticketResumenGeneral;
@@ -56,13 +63,27 @@ use Illuminate\Support\Facades\Crypt;
 
 class TicketsController extends Controller
 {
+    public function __construct()
+    {
+        // $this->strroute = 'storage/app/public/tickets/evidencias/';
+        $this->strroute = 'storage/tickets/evidencias/';
+    }
+
 // CONTROL DE REGISTROS POR TRIMESTRE (KERNEL AUTOMATIZADO)
     // public function eliminarFotoTicket($nombre_foto){
     //     // $nombre_foto = '1728068080_1.jpg';
     //     \Storage::disk('tickets')->delete($nombre_foto);
     // }
 
+
+
+
 // CONSULTAS FETCH JS
+    public function obtenerCasas($id){
+        // $casa = casas::find($id);
+        return casas::where('ID_CASA', $id)->first();
+    }
+
     public function obtenerDirectores($id){
         $casa = casas::find($id);
         return directores::where('ID_CASA', $casa->ID_CASA)->get();
@@ -253,69 +274,68 @@ class TicketsController extends Controller
 
         return view('Tickets.generarreporte', compact('now', 'startWeek'));
 
-        // $dateStart = Carbon::now()->startOfMonth();
-        // $dateEnd = Carbon::now();
-
-        // $tickets = tickets::whereBetween('FECHA_INICIO', [$dateStart,$dateEnd])->where('CASA', 'Aldea Iztapalapa')->get();
-        // $aldea = $tickets->sum('COTIZACION');
-
-
-        // echo $aldea;
 
     }
 
     public function actualizarTickets(tickets $ticket){
         $areas = areas::all();
+        $id_siniestros =  DB::table('areas')->select('ID_AREA')->where('NOMBRE', 'Siniestros');
 
-        return view('Tickets.actualizarticket', compact('ticket', 'areas'));
+        $areas = areas::whereNotIn('ID_AREA',$id_siniestros)->get();
+        $strroute = $this->strroute;
+
+        return view('Tickets.actualizarticket', compact('ticket', 'areas', 'strroute'));
     }
 
     public function historialTickets(tickets $ticket){
         $modificaciones = modificaciones::where('ID_TICKET', $ticket->ID_TICKET)->orderBy('FECHA', 'DESC')->get();
-        return view('Tickets.historialticket', compact('modificaciones'));
 
+        return view('Tickets.historialticket', compact('modificaciones', 'ticket'));
     }
 
 
 
-    public function validarTickets(tickets $ticket){
+    public function validarTickets(tickets $ticket, $encargado){
         $prioridades = prioridades::all();
 
         if ($ticket->modificaciones->where('TIPO', 'VALIDACION')->isEmpty()) {
             $validado = false;
-            return view('Tickets.validarticket', compact('ticket', 'prioridades', 'validado'));
+
+            $strroute = $this->strroute;
+            return view('Tickets.validarticket', compact('ticket','encargado', 'prioridades', 'validado', 'strroute'));
         } else {
             $validado = true;
             $ultimaValidacion = $ticket->modificaciones->where('TIPO', 'VALIDACION')->first();
-            return view('Tickets.validarticket', compact('ticket', 'prioridades', 'validado', 'ultimaValidacion'));
+            return view('Tickets.validarticket', compact('ticket','encargado', 'prioridades', 'validado', 'ultimaValidacion'));
 
         }
 
     }
 
     public function cotizarTickets(tickets $ticket, $encargado){
-        // // $encrypted = Crypt::encryptString('Hello world.');
         $ultimaCotizacion = modificaciones::where('ID_TICKET', $ticket->ID_TICKET)->where('TIPO','COTIZACION')->orderBy('FECHA','DESC')->first();
         $ultimaFechaCompromiso = modificaciones::where('ID_TICKET', $ticket->ID_TICKET)->where('TIPO','FECHA COMPROMISO')->orderBy('FECHA','DESC')->first();
         $decrypted = Crypt::decryptString($encargado);
 
-        // echo $decrypted;
-        return view('Tickets.cotizarticket', compact('ticket', 'encargado', 'decrypted', 'ultimaCotizacion', 'ultimaFechaCompromiso'));
+        $strroute = $this->strroute;
+        return view('Tickets.cotizarticket', compact('ticket', 'encargado', 'decrypted', 'ultimaCotizacion', 'ultimaFechaCompromiso', 'strroute'));
     }
 
     public function modificarCotizacion(tickets $ticket, $encargado) {
         $decrypted = Crypt::decryptString($encargado);
 
-        return view('Tickets.modifiicarcotizacionticket', compact('ticket', 'decrypted'));
+        $strroute = $this->strroute;
+        return view('Tickets.modifiicarcotizacionticket', compact('ticket', 'decrypted', 'strroute'));
     }
 
     public function autorizarTicket(tickets $ticket, $encargado){
-
         $ultimaCotizacion = modificaciones::where('ID_TICKET', $ticket->ID_TICKET)->where('TIPO','COTIZACION')->orderBy('FECHA','DESC')->first();
         $decrypted = Crypt::decryptString($encargado);
 
-        return view('Tickets.autorizarticket', compact('ticket', 'encargado', 'decrypted', 'ultimaCotizacion'));
+        $strroute = $this->strroute;
+        return view('Tickets.autorizarticket', compact('ticket', 'encargado', 'decrypted', 'ultimaCotizacion', 'strroute'));
     }
+
 
     public function modificarPersonal(){
         $casas = casas::all();
@@ -328,6 +348,32 @@ class TicketsController extends Controller
 
         return view('Tickets.personal', compact('casas', 'areas', 'encargados', 'encargados_casas', 'tickets'));
 
+    }
+
+
+
+
+    public function consultarTicketsFinalizados(){
+        $currentYear = date('Y');
+
+        $tickets = tickets::whereYear('FECHA_INICIO', $currentYear)->where([
+            ['ESTATUS_ACTUAL', 'FINALIZADO'],
+            ['AREA_RESPONSABLE','<>','SEDENA'],
+            ['AREA_RESPONSABLE','<>','SEMAR'],
+            ['DAÑO','<>','Siniestro - Desastre Meteorilógico'],
+            ['DAÑO','<>','Siniestro - Temblor'],
+            ['REINCIDENCIA','<>','SI'],
+
+            ])->orderBy('FECHA_INICIO', 'DESC')->get();
+        // $tickets = $tickets;
+        return view('Tickets.consultarticketsfinalizados', compact('tickets'));
+
+    }
+
+    public function actualizarTicketsFinalizados(tickets $ticket){
+        $strroute = $this->strroute;
+
+        return view('Tickets.actualizarpagoticket', compact('ticket', 'strroute'));
     }
 // ACCION FORMULARIOS
 
@@ -415,14 +461,24 @@ class TicketsController extends Controller
         $ticket->DETALLE =          $detalle;
 
         $ticket->ESTATUS_CASA=      $estatus_casa;
-        $ticket->ESTATUS_COTIZACION     ='NO';
-        $ticket->ESTATUS_AUTORIZACION   ='NO';
+        $ticket->ESTATUS_COTIZACION =    'NO';
+        $ticket->ESTATUS_AUTORIZACION =  'NO';
         $ticket->ESTATUS_ACTUAL =   $estatus_actual;
+        $ticket->ESTATUS_PAGO =          'NO';
+
+        $ticket->save();
+
+        $modificacion = new modificaciones;
+
+        $modificacion->ID_TICKET    = $ticket->ID_TICKET;
+        $modificacion->TIPO         = 'CREACION';
+        $modificacion->RESPONSABLE  = $casa;
+        $modificacion->FECHA        = date("Y-m-d H-i-s");
+
+        $modificacion->save();
 
 
-
-
-        $area    = $ticket->afeccion->area_afeccion;
+        // $area    = $ticket->afeccion->area_afeccion;
 
         // Contenido del correo
         $data = [
@@ -455,103 +511,25 @@ class TicketsController extends Controller
             'validado'      => false,
         ];
 
-        $ticket->save();
-
         // Enviar correo a Vo.Bo.
-        switch (true) {
-            case ($reincidencia == 'SI'):
-                $destinatarios = [
-                    'supervisores' => [
-                        'Jorge Leybon' => 'reportes.bdt@gmail.com',
-                        'Saul Delgadillo' => 'reportes.bdt@gmail.com',
-                    ]
-                ];
+        $cc = 'reportes.bdt@gmail.com';
+        foreach ($ticket->casa->coordinador_casa as $coordinador) {
+            if ($coordinador->VALIDACION == true) {
+                $data['destinatario'] = $coordinador->NOMBRE;
+                self::enviarNuevoTicket($data, $coordinador->CORREO);
 
-                if ($area_responsable == 'FYCSA') {
-                    self::envioPrioritarioDirecto($area, $data);
-                    $area = areas::where('NOMBRE', 'CTBR')->first();
-                    self::envioPrioritarioDirecto($area, $data);
-
-                    // Enviar correo a supervisores Jorge - Saul
-                    self::envioDestinatariosDirecto($destinatarios, $data);
-
-                } else {
-                    self::envioPrioritarioDirecto($area, $data);
-
-                    // Enviar correo a supervisores Jorge - Saul
-                    self::envioDestinatariosDirecto($destinatarios, $data);
-                }
-                break;
-
-            case ($daño == 'Siniestro'):
-                $destinatarios = [
-                    'supervisores' => [
-                        'Jorge Leybon' => 'reportes.bdt@gmail.com',
-                        'Saul Delgadillo' => 'reportes.bdt@gmail.com',
-                    ]
-                ];
-
-                if ($area_responsable == 'FYCSA') {
-                    self::envioPrioritarioDirecto($area, $data);
-                    $area = areas::where('NOMBRE', 'CTBR')->first();
-                    self::envioPrioritarioDirecto($area, $data);
-
-                    // Enviar correo a supervisores Jorge - Saul
-                    self::envioDestinatariosDirecto($destinatarios, $data);
-
-                } else {
-                    self::envioPrioritarioDirecto($area, $data);
-
-                    // Enviar correo a supervisores Jorge - Saul
-                    self::envioDestinatariosDirecto($destinatarios, $data);
-                }
-                break;
-
-            case ($area_responsable == 'SEDENA'):
-                $destinatarios = [
-                    'supervisores' => [
-                        'Jorge Leybon' => 'reportes.bdt@gmail.com',
-                        'Saul Delgadillo' => 'reportes.bdt@gmail.com',
-                        'Nayely Aguilar' => 'reportes.bdt@gmail.com',
-                    ]
-                ];
-                self::envioPrioritarioDirecto($area, $data);
-
-                // Enviar correo a supervisores Jorge - Saul -Naye
-                self::envioDestinatariosDirecto($destinatarios, $data);
-                break;
-
-            case ($area_responsable == 'SEMAR'):
-                $destinatarios = [
-                    'supervisores' => [
-                        'Jorge Leybon' => 'reportes.bdt@gmail.com',
-                        'Saul Delgadillo' => 'reportes.bdt@gmail.com',
-                        'Nayely Aguilar' => 'reportes.bdt@gmail.com',
-                    ]
-                ];
-                self::envioPrioritarioDirecto($area, $data);
-
-                // Enviar correo a supervisores Jorge - Saul -Naye
-                self::envioDestinatariosDirecto($destinatarios, $data);
-                break;
-
-
-
-            default:
-                $destinatario = 'reportes.bdt@gmail.com';
-                $cc = 'reportes.bdt@gmail.com';
-                Mail::to($destinatario)->cc($cc)->send(new GeneracionTicket($data));
-                break;
+                //Notificar whatsapp ($destinatario, data)
+                $data_whats['contenido'] = '_NUEVO TICKET A VALIDAR - '. $coordinador->NOMBRE .'_ %0A %0A'.
+                '* _'.$ticket->CASA.' - '.$ticket->AREA_RESPONSABLE.'_';
+                self::notificarModificacionWhatapp($coordinador->TELEFONO, $data_whats);
+            }
         }
-
-
-
 
         return redirect()->route('consultar.ticket');
         // return $request->all();
     }
 
-    public function validar(Request $request, tickets $ticket){
+    public function validar(Request $request, tickets $ticket, $usuario){
         $prioridad                  = $request->input('actualizar_prioridad');
         $nivel                      = $request->input('actualizar_nivel');
 
@@ -562,7 +540,7 @@ class TicketsController extends Controller
 
         $modificacion->ID_TICKET    = $ticket->ID_TICKET;
         $modificacion->TIPO         = 'VALIDACION';
-        $modificacion->RESPONSABLE  = 'Saul Delgadillo';
+        $modificacion->RESPONSABLE  = $usuario;
         $modificacion->FECHA        = date("Y-m-d H-i-s");
 
 
@@ -571,13 +549,15 @@ class TicketsController extends Controller
         $ticket->save();
 
 
-        $area    = $ticket->afeccion->area_afeccion;
+        $area             = areas::where('NOMBRE', $ticket->AREA_RESPONSABLE)->first();
+        $area_responsable = $ticket->AREA_RESPONSABLE;
 
         $fotos      = self::generarArregloFotos($ticket);
         // Contenido del correo
         $data = [
             'nuevo_ticket' =>           true,
             'autorizacion_ticket' =>    false,
+            'anulacion_ticket' =>       false,
 
             'folio' =>          $ticket->FOLIO,
             'casa' =>           $ticket->CASA,
@@ -606,22 +586,59 @@ class TicketsController extends Controller
 
         ];
 
+        switch (true) {
+            // SINIESTROS
+            case ($ticket->ID_TIPO_DANO == 1 || $ticket->ID_TIPO_DANO == 2):
+                self::notificarAreasDirecto($nivel, $area_responsable, $area, $data);
 
-        if ($area->NOMBRE == 'FYCSA') {
-            self::envioPrioritario($nivel, $area, $data);
-            $area = areas::where('NOMBRE', 'CTBR')->first();
-            self::envioPrioritario($nivel, $area, $data);
+                $area = areas::where('NOMBRE', 'Siniestros')->first();
+                self::envioPrioritarioDirecto($nivel, $area, $data);
+                break;
 
-        } else {
-            self::envioPrioritario($nivel, $area, $data);
+            // REINCIDENCIA
+            case ($ticket->REINCIDENCIA == 'SI'):
+                self::notificarAreasDirecto($nivel, $area_responsable, $area, $data);
+                break;
+
+            // SDN - SEMAR
+            case ($ticket->AREA_RESPONSABLE == 'SEDENA' || $ticket->AREA_RESPONSABLE == 'SEMAR'):
+                self::notificarAreasDirecto($nivel, $area_responsable, $area, $data);
+                break;
+
+            default:
+                if ($area->NOMBRE == 'FYCSA') {
+                    self::envioPrioritario($nivel, $area, $data);
+
+                    $area = areas::where('NOMBRE', 'CTBR')->first();
+                    self::envioPrioritario($nivel, $area, $data);
+
+                } else {
+                    self::envioPrioritario($nivel, $area, $data);
+                }
+
+                $destinatarios = self::obtenerDestinatarios($ticket);
+                // Notificar a destinatarios extra SDN SEMAR
+                foreach ($destinatarios['extra'] as $nombre => $correo) {
+                    $data['destinatario']   = $nombre;
+                    $data['encript']        = Crypt::encryptString($nombre);
+                    $data['supervisor']     = false;
+                    Mail::to($correo)->send(new NotificacionTicketDirecto($data));
+                }
+
+                //Notificar whatsapp ($destinatario, data)
+                foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
+                    $data_whats['contenido'] = '_NUEVO TICKET GENERADO - '. $nombre .'_ %0A %0A'.
+                    '* _'.$ticket->CASA.' - '.$ticket->AREA_RESPONSABLE.'_';
+                    self::notificarModificacionWhatapp($telefono, $data_whats);
+                }
+                break;
         }
+
 
         return redirect()->route('consultar.ticket');
     }
 
     public function cancelar(Request $request, tickets $ticket){
-        $destinatario = $ticket->casa->CORREO;
-        $cc = 'reportes.bdt@gmail.com';
         $data = [
             "folio" => $ticket->FOLIO,
             "casa" => $ticket->CASA,
@@ -636,8 +653,11 @@ class TicketsController extends Controller
         self::eliminarFotoTicket($ticket->FOTO_2);
         self::eliminarFotoTicket($ticket->FOTO_3);
 
-
-        self::enviarCorreoObservaciones($destinatario, $cc, $data);
+        if (!empty($ticket->casa->CORREO)) {
+            $destinatario = $ticket->casa->CORREO;
+            // AÑADIR USUARIO CASA
+            self::enviarCorreoObservaciones($destinatario, $data);
+        }
 
         return redirect()->route('consultar.ticket');
         // return $request->all();
@@ -668,6 +688,8 @@ class TicketsController extends Controller
             $modificacion->RESPONSABLE  = $usuario;
             $modificacion->FECHA        = date("Y-m-d H-i-s");
 
+
+
             if (!is_null($request->input('justificacion'))){
                 $modificacion->JUSTIFICACION = $request->input('justificacion');
             }
@@ -676,6 +698,7 @@ class TicketsController extends Controller
             // NOTIFICAR FECHA COMPROMISO SIN CONSIDERAR AREA FINANZAS
             $cotizacion =                 false;
             self::envioCompromiso($ticket, $cotizacion);
+            $aux = '_NUEVO TICKET COMPROMETIDO - ';
         } else {
             $ticket->ESTATUS_COTIZACION='SI';
             $ticket->COTIZACION =       $monto;
@@ -704,8 +727,18 @@ class TicketsController extends Controller
             // NOTIFICAR COTIZACION CC-> AREA FINANZAS
             $cotizacion =               $monto;
             self::envioCompromiso($ticket, $cotizacion);
+            $aux = '_NUEVO TICKET COTIZADO - ';
+
         }
 
+
+        //Notificar whatsapp ($destinatario, data)
+        $destinatarios = self::obtenerDestinatarios($ticket);
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
+            $data_whats['contenido']= $aux. $nombre .'_ %0A %0A'.
+            '* _'.$usuario.' - '.$ticket->AREA_RESPONSABLE.'_';
+            self::notificarModificacionWhatapp($telefono, $data_whats);
+        }
 
 
         return redirect()->route('consultar.ticket');
@@ -750,6 +783,7 @@ class TicketsController extends Controller
         $data = [
             'nuevo_ticket' =>           false,
             'autorizacion_ticket' =>    true,
+            'anulacion_ticket' =>       false,
 
             'folio' =>          $ticket->FOLIO,
             'casa' =>           $ticket->CASA,
@@ -780,28 +814,109 @@ class TicketsController extends Controller
 
         if ($area->NOMBRE == 'FYCSA') {
             self::envioPrioritario($nivel, $area, $data);
-
             $area = areas::where('NOMBRE', 'CTBR')->first();
             self::envioPrioritario($nivel, $area, $data);
-
         } else {
             self::envioPrioritario($nivel, $area, $data);
+        }
+
+        // Notificar a finanzas
+        $area = areas::where('NOMBRE', 'Finanzas Filiales')->first();
+        self::envioPrioritario($nivel, $area, $data);
+
+
+        //Notificar whatsapp ($destinatario, data)
+        $destinatarios = self::obtenerDestinatarios($ticket);
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
+            $data_whats['contenido'] = '_NUEVO TICKET AUTORIZADO - '. $nombre .'_ %0A %0A'.
+            '* _POR:'.$usuario.' - '.$ticket->AREA_RESPONSABLE.'_';
+            self::notificarModificacionWhatapp($telefono, $data_whats);
         }
 
 
         return redirect()->route('consultar.ticket');
     }
 
+    public function anular(Request $request, tickets $ticket, $usuario){
+        $destinatarios = self::obtenerDestinatarios($ticket);
+        $data = [
+            'nuevo_ticket' =>           false,
+            'autorizacion_ticket' =>    false,
+            'anulacion_ticket' =>       true,
+
+            "folio"             => $ticket->FOLIO,
+            "casa"              => $ticket->CASA,
+            "area"              => $ticket->afeccion->area_afeccion,
+            "mensaje"           => $request->input('mensaje'),
+
+            'nivel'             => $ticket->NIVEL,
+            "ticket"            => $ticket,
+
+        ];
+
+
+
+        // Baja de Imagenes
+        self::eliminarFotoTicket($ticket->FOTO_OBLIGATORIA);
+        self::eliminarFotoTicket($ticket->FOTO_2);
+        self::eliminarFotoTicket($ticket->FOTO_3);
+        self::eliminarArchivoCotizacion($ticket->ARCHIVO_COTIZACION);
+
+        $ticket->ARCHIVO_COTIZACION = null;
+        $ticket->ESTATUS_AUTORIZACION = 'ANULADO';
+        $ticket->save();
+
+
+        $modificacion = new modificaciones;
+
+        $modificacion->ID_TICKET    = $ticket->ID_TICKET;
+        $modificacion->TIPO         = 'ANULACION';
+        $modificacion->RESPONSABLE  = $usuario;
+        $modificacion->FECHA        = date("Y-m-d H-i-s");
+
+
+        $modificacion->save();
+
+        self::enviarCorreoAnulacion($destinatarios, $data);
+
+        //Notificar whatsapp ($destinatario, data)
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
+            $data_whats['contenido'] = '_TICKET NO AUTORIZADO - '. $nombre .'_ %0A %0A'.
+            '* _ACTUALIZADO POR:'.$usuario.' - '.$ticket->AREA_RESPONSABLE.'_';
+            self::notificarModificacionWhatapp($telefono, $data_whats);
+        }
+
+        return redirect()->route('consultar.ticket');
+    }
+
     public function actualizar(Request $request, tickets $ticket){
 
-        $ticket->FECHA_FIN = $request->input('fecha_termino');
-        $ticket->AREA_ATENCION = $request->input('area_atendio');
-        $ticket->PERSONA_ATENCION = $request->input('persona_atendio');
-        $ticket->ESTATUS_ACTUAL = $request->input('actualizar_estatus');
-        $ticket->EVIDENCIA = $request->input('link_evidencia');
-        $ticket->OBSERVACIONES = $request->input('observaciones_finales');
+        $ticket->FECHA_FIN              = $request->input('fecha_termino');
+        $ticket->AREA_ATENCION          = $request->input('area_atendio');
+        $ticket->PERSONA_ATENCION       = $request->input('persona_atendio');
+        $ticket->ESTATUS_ACTUAL         = $request->input('actualizar_estatus');
+        // $ticket->EVIDENCIA = $request->input('link_evidencia');
+        $ticket->OBSERVACIONES          = $request->input('observaciones_finales');
+
+        $modificacion = new modificaciones;
+
+        $modificacion->ID_TICKET        = $ticket->ID_TICKET;
+        $modificacion->TIPO             = 'ACTUALIZACION ESTATUS - ' . $request->input('actualizar_estatus');
+        $modificacion->RESPONSABLE      = $request->input('persona_atendio');
+        $modificacion->JUSTIFICACION    = $request->input('observaciones_finales');
+        $modificacion->FECHA            = date("Y-m-d H-i-s");
+
+        $modificacion->save();
 
         $ticket->save();
+
+        //Notificar whatsapp ($destinatario, data)
+        $destinatarios = self::obtenerDestinatarios($ticket);
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
+            $data_whats['contenido'] = '_ACTUALIZACION ESTATUS - ' . $request->input('actualizar_estatus'). ' - '. $nombre .'_ %0A %0A'.
+            $ticket->CASA.' - ' . $request->input('area_atendio').': %0A'.$request->input('observaciones_finales');
+            self::notificarModificacionWhatapp($telefono, $data_whats);
+        }
 
         return redirect()->route('consultar.ticket');
     }
@@ -810,16 +925,21 @@ class TicketsController extends Controller
         $dateStart = $request->input('fecha_inicio');
         $dateEnd = $request->input('fecha_termino');
 
-
         $archivo = new consultaCompuestaTickets($dateStart, $dateEnd);
+
         $archivo->descargar();
+
     }
+    // -----------------------------------------------------------------
+
+    // -----------------------------------------------------------------
+
 
     // Personal
     public function crearPersonal(Request $request){
+        $area =         $request->input('areas');
         $nombre =       $request->input('nombre');
         $puesto =       $request->input('puesto');
-        $area =         $request->input('areas');
         $correo =       $request->input('correo');
 
         // // Rellenar BD encargados_table
@@ -832,6 +952,16 @@ class TicketsController extends Controller
 
         $encargado->save();
 
+        return redirect()->route('modificar.personal');
+        // return $request->all();
+    }
+
+    public function asignarCorreo(Request $request){
+        $casa =         casas::where( 'ID_CASA',$request->input('casas'))->first();
+        $correo =       $request->input('correo_assign');
+
+        $casa->CORREO = $correo;
+        $casa->save();
         return redirect()->route('modificar.personal');
         // return $request->all();
     }
@@ -877,6 +1007,41 @@ class TicketsController extends Controller
     }
 
 
+    // Tickets Finalizados
+    public function actualizarFinalizado(Request $request, tickets $ticket){
+        $evidencia_pago = $request->input('archivo_pago');
+
+        if ($evidencia_pago) {
+            // Carga y guardado de evidencias de pago
+            self::eliminarEvidenciaPago($ticket->EVIDENCIA_PAGO);
+            $archivo_pago               = self::cargaEvidenciaPago($request->file('archivo_pago'));
+
+            $ticket->EVIDENCIA_PAGO     = $archivo_pago;
+        }
+
+        $ticket->ESTATUS_PAGO       = 'SI';
+
+        $modificacion = new modificaciones;
+
+        $modificacion->ID_TICKET        = $ticket->ID_TICKET;
+        $modificacion->TIPO             = 'ACTUALIZACION ESTATUS - PAGADO';
+        $modificacion->RESPONSABLE      = 'Saul Delgadillo';
+        $modificacion->FECHA            = date("Y-m-d H-i-s");
+
+        $modificacion->save();
+
+        $ticket->save();
+
+        //Notificar whatsapp ($destinatario, data)
+        $destinatarios = self::obtenerDestinatarios($ticket);
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
+            $data_whats['contenido'] = '_ACTUALIZACION ESTATUS - PAGADO - '. $nombre .'_ %0A %0A'.
+            '_'.$ticket->FOLIO.' - '.$ticket->CASA.' - '.$ticket->FECHA_INICIO.'_';
+            self::notificarModificacionWhatapp($telefono, $data_whats);
+        }
+
+        return redirect()->route('consultar.ticket.finalizado');
+    }
 
 // CARGA/BAJA IMAGENES y OBTENCION NOMBRE
     public function cargaImg($file){
@@ -944,6 +1109,19 @@ class TicketsController extends Controller
         }
     }
 
+    public function cargaEvidenciaPago($file){
+        if (is_null($file)){
+            return null;
+        }else{
+            //obtenemos el nombre del archivo
+            $nombre_archivo =  time()."_".$file->getClientOriginalName();
+            //indicamos que queremos guardar un nuevo archivo en el disco local
+            \Storage::disk('tickets_evidencias_pago')->put($nombre_archivo,  \File::get($file));
+
+            return $nombre_archivo;
+        }
+    }
+
     public function eliminarArchivoCotizacion($nombre_archivo){
         if ($nombre_archivo != null) {
             // $nombre_foto = '1728068080_1.jpg';
@@ -954,6 +1132,12 @@ class TicketsController extends Controller
     public function eliminarArchivoAutorizacion($nombre_archivo){
         if ($nombre_archivo != null) {
             \Storage::disk('tickets_autorizaciones')->delete($nombre_archivo);
+        }
+    }
+
+    public function eliminarEvidenciaPago($nombre_archivo){
+        if ($nombre_archivo != null) {
+            \Storage::disk('tickets_evidencias_pago')->delete($nombre_archivo);
         }
     }
 
@@ -978,6 +1162,122 @@ class TicketsController extends Controller
         $subgerente = $data['ticket']->casa->subgerente_casa->where('ID_AREA', $area->ID_AREA)->first();
         $gerente    = $data['ticket']->casa->gerente_casa->where('ID_AREA', $area->ID_AREA)->first();
 
+        if ($data['area'] == 'Finanzas Filiales') {
+            $nivel = 'GERENCIA';
+        }
+
+        switch ($nivel) {
+            case 'GERENCIA':
+                // NOTIFICAR GERENTE SI EXISTE
+                if ($gerente) {
+                    $data['destinatario']  = $gerente->NOMBRE;
+                    $data['encript']    = Crypt::encryptString($gerente->NOMBRE);
+
+                    $destinatario = 'mangel.jimenez@telmexeducacion.com';
+
+                    if ($data['nuevo_ticket']) {
+                        Mail::to($destinatario)->send(new GeneracionTicket($data));
+                    } elseif ($data['autorizacion_ticket']) {
+                        Mail::to($destinatario)->send(new AutorizacionTicket($data));
+                    } elseif ($data['anulacion_ticket']){
+                        Mail::to($destinatario)->send(new AnulacionTicket($data));
+                    }
+                }
+
+                // NOTIFICAR SUBGERENTE SI EXISTE
+                if ($subgerente) {
+                    $data['destinatario'] = $subgerente->NOMBRE;
+                    $data['encript']    = Crypt::encryptString($subgerente->NOMBRE);
+
+                    $destinatario = 'jimenez.vazquez.miguel.a@gmail.com';
+
+                    if ($data['nuevo_ticket']) {
+                        Mail::to($destinatario)->send(new GeneracionTicket($data));
+                    } elseif ($data['autorizacion_ticket']) {
+                        Mail::to($destinatario)->send(new AutorizacionTicket($data));
+                    } elseif ($data['anulacion_ticket']){
+                        Mail::to($destinatario)->send(new AnulacionTicket($data));
+                    }
+                }
+
+                // NOTIFICAR SUPERVISOR SI EXISTE
+                if ($supervisor) {
+                    $data['destinatario'] = $supervisor->NOMBRE;
+                    $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
+
+                    $destinatario = 'miguelangelzz2900@gmail.com';
+
+                    if ($data['nuevo_ticket']) {
+                        Mail::to($destinatario)->send(new GeneracionTicket($data));
+                    } elseif ($data['autorizacion_ticket']) {
+                        Mail::to($destinatario)->send(new AutorizacionTicket($data));
+                    } elseif ($data['anulacion_ticket']){
+                        Mail::to($destinatario)->send(new AnulacionTicket($data));
+                    }
+                }
+            break;
+
+            case 'SUBGERENCIA':
+                // NOTIFICAR SUBGERENTE SI EXISTE
+                if ($subgerente) {
+                    $data['destinatario'] = $subgerente->NOMBRE;
+                    $data['encript']    = Crypt::encryptString($subgerente->NOMBRE);
+
+                    $destinatario = 'jimenez.vazquez.miguel.a@gmail.com';
+
+                    if ($data['nuevo_ticket']) {
+                        Mail::to($destinatario)->send(new GeneracionTicket($data));
+                    } elseif ($data['autorizacion_ticket']) {
+                        Mail::to($destinatario)->send(new AutorizacionTicket($data));
+                    } elseif ($data['anulacion_ticket']){
+                        Mail::to($destinatario)->send(new AnulacionTicket($data));
+                    }
+                }
+
+                // NOTIFICAR SUPERVISOR SI EXISTE
+                if ($supervisor) {
+                    $data['destinatario'] = $supervisor->NOMBRE;
+                    $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
+
+                    $destinatario = 'miguelangelzz2900@gmail.com';
+
+                    if ($data['nuevo_ticket']) {
+                        Mail::to($destinatario)->send(new GeneracionTicket($data));
+                    } elseif ($data['autorizacion_ticket']) {
+                        Mail::to($destinatario)->send(new AutorizacionTicket($data));
+                    } elseif ($data['anulacion_ticket']){
+                        Mail::to($destinatario)->send(new AnulacionTicket($data));
+                    }
+                }
+            break;
+
+            case 'SUPERVISION':
+                // NOTIFICAR SUPERVISOR SI EXISTE
+                if ($supervisor) {
+                    $data['destinatario'] = $supervisor->NOMBRE;
+                    $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
+
+                    $destinatario = 'miguelangelzz2900@gmail.com';
+
+                    if ($data['nuevo_ticket']) {
+                        Mail::to($destinatario)->send(new GeneracionTicket($data));
+                    } elseif ($data['autorizacion_ticket']) {
+                        Mail::to($destinatario)->send(new AutorizacionTicket($data));
+                    } elseif ($data['anulacion_ticket']){
+                        Mail::to($destinatario)->send(new AnulacionTicket($data));
+                    }
+                }
+            break;
+        }
+    }
+
+    public function envioPrioritarioDirecto($nivel, $area, $data){
+        // Enviar correo a encargados
+        $data['area'] = $area->NOMBRE;
+
+        $supervisor = $data['ticket']->casa->supervisor_casa->where('ID_AREA', $area->ID_AREA)->first();
+        $subgerente = $data['ticket']->casa->subgerente_casa->where('ID_AREA', $area->ID_AREA)->first();
+        $gerente    = $data['ticket']->casa->gerente_casa->where('ID_AREA', $area->ID_AREA)->first();
 
         switch ($nivel) {
             case 'GERENCIA':
@@ -988,12 +1288,8 @@ class TicketsController extends Controller
 
                     $destinatario = 'mangel.jimenez@telmexeducacion.com';
                     $cc = ['reportes.bdt@gmail.com'];
+                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
 
-                    if ($data['nuevo_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new GeneracionTicket($data));
-                    } elseif ($data['autorizacion_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new AutorizacionTicket($data));
-                    }
                 }
 
                 // NOTIFICAR SUBGERENTE SI EXISTE
@@ -1004,11 +1300,8 @@ class TicketsController extends Controller
                     $destinatario = 'jimenez.vazquez.miguel.a@gmail.com';
                     $cc = ['reportes.bdt@gmail.com'];
 
-                    if ($data['nuevo_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new GeneracionTicket($data));
-                    } elseif ($data['autorizacion_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new AutorizacionTicket($data));
-                    }
+                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+
                 }
 
                 // NOTIFICAR SUPERVISOR SI EXISTE
@@ -1019,13 +1312,10 @@ class TicketsController extends Controller
                     $destinatario = 'miguelangelzz2900@gmail.com';
                     $cc = ['reportes.bdt@gmail.com'];
 
-                    if ($data['nuevo_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new GeneracionTicket($data));
-                    } elseif ($data['autorizacion_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new AutorizacionTicket($data));
-                    }
+                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+
                 }
-                break;
+            break;
 
             case 'SUBGERENCIA':
                 // NOTIFICAR SUBGERENTE SI EXISTE
@@ -1036,11 +1326,8 @@ class TicketsController extends Controller
                     $destinatario = 'jimenez.vazquez.miguel.a@gmail.com';
                     $cc = ['reportes.bdt@gmail.com'];
 
-                    if ($data['nuevo_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new GeneracionTicket($data));
-                    } elseif ($data['autorizacion_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new AutorizacionTicket($data));
-                    }
+                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+
                 }
 
                 // NOTIFICAR SUPERVISOR SI EXISTE
@@ -1051,13 +1338,10 @@ class TicketsController extends Controller
                     $destinatario = 'miguelangelzz2900@gmail.com';
                     $cc = ['reportes.bdt@gmail.com'];
 
-                    if ($data['nuevo_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new GeneracionTicket($data));
-                    } elseif ($data['autorizacion_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new AutorizacionTicket($data));
-                    }
+                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+
                 }
-                break;
+            break;
 
             case 'SUPERVISION':
                 // NOTIFICAR SUPERVISOR SI EXISTE
@@ -1068,70 +1352,66 @@ class TicketsController extends Controller
                     $destinatario = 'miguelangelzz2900@gmail.com';
                     $cc = ['reportes.bdt@gmail.com'];
 
-                    if ($data['nuevo_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new GeneracionTicket($data));
-                    } elseif ($data['autorizacion_ticket']) {
-                        Mail::to($destinatario)->cc($cc)->send(new AutorizacionTicket($data));
-                    }
+                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+
                 }
-                break;
-            }
-    }
-
-    public function envioPrioritarioDirecto($area, $data){
-
-        // Enviar correo a encargados
-        // $area    = $ticket->afeccion->area_afeccion;
-        $data['area'] = $area->NOMBRE;
-
-        $supervisor = $data['ticket']->casa->supervisor_casa->where('ID_AREA', $area->ID_AREA)->first();
-        $subgerente = $data['ticket']->casa->subgerente_casa->where('ID_AREA', $area->ID_AREA)->first();
-        $gerente    = $data['ticket']->casa->gerente_casa->where('ID_AREA', $area->ID_AREA)->first();
-
-        // NOTIFICAR GERENTE SI EXISTE
-        if ($gerente) {
-            $data['destinatario']  = $gerente->NOMBRE;
-            $data['encript']    = Crypt::encryptString($gerente->NOMBRE);
-
-            $destinatario = 'mangel.jimenez@telmexeducacion.com';
-            $cc = ['reportes.bdt@gmail.com'];
-            Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
-
-        }
-
-        // NOTIFICAR SUBGERENTE SI EXISTE
-        if ($subgerente) {
-            $data['destinatario'] = $subgerente->NOMBRE;
-            $data['encript']    = Crypt::encryptString($subgerente->NOMBRE);
-
-            $destinatario = 'jimenez.vazquez.miguel.a@gmail.com';
-            $cc = ['reportes.bdt@gmail.com'];
-
-            Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
-
-        }
-
-        // NOTIFICAR SUPERVISOR SI EXISTE
-        if ($supervisor) {
-            $data['destinatario'] = $supervisor->NOMBRE;
-            $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
-
-            $destinatario = 'miguelangelzz2900@gmail.com';
-            $cc = ['reportes.bdt@gmail.com'];
-
-            Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
-
+            break;
         }
 
     }
 
-    public function envioDestinatariosDirecto($destinatarios, $data){
-        foreach ($destinatarios['supervisores'] as $nombre => $correo) {
+    public function obtenerDestinatarios($ticket){
+
+        $destinatarios = [
+            'coordinadores-tel' =>[],
+            'coordinadores' =>[],
+            'finanzas' =>[],
+            'extra' =>[],
+
+        ];
+
+
+        foreach ($ticket->casa->coordinador_casa as $coordinador) {
+            $destinatarios['coordinadores-tel']+= [$coordinador->NOMBRE  => $coordinador->TELEFONO];
+            $destinatarios['coordinadores']    += [$coordinador->NOMBRE  => $coordinador->CORREO];
+        }
+
+        foreach ($ticket->casa->encargados_finanzas as $encargado) {
+            // CAMBIAR CORREO ESTÁTICO POR DINÁMICO
+            $destinatarios['finanzas']         += [$encargado->NOMBRE    => 'reportes.bdt@gmail.com'];
+        }
+
+        if (!empty($ticket->casa->CORREO)) {
+            $destinatarios['extra']            += [$ticket->casa->NOMBRE => $ticket->casa->CORREO];
+        }
+
+        return $destinatarios;
+    }
+
+
+    public function notificarDestinatariosDirecto($destinatarios, $data){
+        foreach ($destinatarios['coordinadores'] as $nombre => $correo) {
             $data['destinatario']   = $nombre;
             $data['encript']        = Crypt::encryptString($nombre);
             $data['supervisor']     = true;
             Mail::to($correo)->send(new NotificacionTicketDirecto($data));
         }
+
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
+            //Notificar whatsapp ($destinatario, data)
+            $data_whats['contenido'] = '_NUEVO TICKET GENERADO - '. $nombre .'_ %0A %0A'.
+            '* _'.$data['ticket']->CASA.' - '.$data['ticket']->AREA_RESPONSABLE.'_';
+            self::notificarModificacionWhatapp($telefono, $data_whats);
+        }
+
+        // Notificar a destinatarios extra SDN SEMAR
+        foreach ($destinatarios['extra'] as $nombre => $correo) {
+            $data['destinatario']   = $nombre;
+            $data['encript']        = Crypt::encryptString($nombre);
+            $data['supervisor']     = false;
+            Mail::to($correo)->send(new NotificacionTicketDirecto($data));
+        }
+
     }
 
     public function envioCompromiso($ticket, $cotizacion){
@@ -1149,22 +1429,8 @@ class TicketsController extends Controller
 
         // NOTIFICACION
         // Enviar correo a encargados de finanzas, Saul, Jorge
-        $id_finanzas = areas::where('NOMBRE','Finanzas Filiales')->first()->ID_AREA;
-        $encargados_finanzas = $ticket->casa->encargados_casa->where('ID_AREA', $id_finanzas);
+        $destinatarios = self::obtenerDestinatarios($ticket);
 
-        $destinatarios = [
-            'supervisores' => [
-                'Jorge Leybon' => 'reportes.bdt@gmail.com',
-                'Saul Delgadillo' => 'reportes.bdt@gmail.com',
-            ],
-            'finanzas' => [
-
-            ]
-        ];
-        foreach ($encargados_finanzas as $encargado) {
-            // CAMBIAR CORREO ESTÁTICO POR DINÁMICO
-            $destinatarios['finanzas'] += [$encargado->NOMBRE => 'reportes.bdt@gmail.com'];
-        }
 
         // Contenido del correo
         $data = [
@@ -1197,10 +1463,10 @@ class TicketsController extends Controller
         ];
 
         // Enviar correo a supervisores Jorge - Saul
-        foreach ($destinatarios['supervisores'] as $nombre => $correo) {
+        foreach ($destinatarios['coordinadores'] as $nombre => $correo) {
             $data['destinatario']   = $nombre;
             $data['encript']        = Crypt::encryptString($nombre);
-            $data['supervisor_bdt']     = true;
+            $data['coordinador_bdt']     = true;
 
             Mail::to($correo)->send(new CotizacionTicket($data));
         }
@@ -1210,20 +1476,68 @@ class TicketsController extends Controller
         if ($cotizacion) {
             foreach ($destinatarios['finanzas'] as $nombre => $correo) {
                 $data['destinatario'] = $nombre;
-                $data['supervisor_bdt']   = false;
+                $data['coordinador_bdt']   = false;
 
                 Mail::to($correo)->send(new CotizacionTicket($data));
             }
         }
     }
 
+    public function notificarAreasDirecto($nivel, $area_responsable, $area, $data){
 
 
-    public function enviarCorreoObservaciones($destinatario, $cc, $data){
-        Mail::to($destinatario)->cc($cc)->send(new ObservacionesTicket($data));
+        $destinatarios = self::obtenerDestinatarios($data['ticket']);
+
+        if ($area_responsable == 'FYCSA') {
+            self::envioPrioritarioDirecto($nivel, $area, $data);
+            $area = areas::where('NOMBRE', 'CTBR')->first();
+            self::envioPrioritarioDirecto($nivel, $area, $data);
+
+        } else {
+            self::envioPrioritarioDirecto($nivel, $area, $data);
+        }
+
+        // Enviar correo a supervisores - Destinatario Extra Casa
+        self::notificarDestinatariosDirecto($destinatarios, $data);
     }
 
+    public function enviarNuevoTicket($data, $correo_encargado){
+        Mail::to($correo_encargado)->send(new GeneracionTicket($data));
 
+    }
+
+    public function enviarCorreoObservaciones($destinatario, $data){
+        Mail::to($destinatario)->send(new ObservacionesTicket($data));
+    }
+
+    public function enviarCorreoAnulacion($destinatarios, $data){
+
+        if ($data['area']->NOMBRE == 'FYCSA') {
+            self::envioPrioritario($data['nivel'], $data['area'], $data);
+
+            $data['area'] = areas::where('NOMBRE', 'CTBR')->first();
+            self::envioPrioritario($data['nivel'], $data['area'], $data);
+
+        } else {
+            self::envioPrioritario($data['nivel'], $data['area'], $data);
+        }
+
+
+        $data['area'] = $data['area']->NOMBRE;
+        foreach ($destinatarios['coordinadores'] as $nombre => $correo) {
+            $data['destinatario']   = $nombre;
+            $data['encript']        = Crypt::encryptString($nombre);
+            Mail::to($correo)->send(new AnulacionTicket($data));
+        }
+
+        // Notificar a destinatarios extra SDN SEMAR
+        foreach ($destinatarios['extra'] as $nombre => $correo) {
+            $data['destinatario']   = $nombre;
+            $data['encript']        = Crypt::encryptString($nombre);
+            Mail::to($correo)->send(new AnulacionTicket($data));
+        }
+
+    }
 
     public function enviarCorreoPrueba($destinatario, $cc, $data){
 
@@ -1233,25 +1547,6 @@ class TicketsController extends Controller
     }
 
 // EXPORTACIONES EXCEL
-    public function export_historico(){
-        return Excel::download(new ticketsExport, 'tickets-historico.xlsx');
-    }
-    public function export_status(){
-        return Excel::download(new ticketsstatusExport, 'tickets-status.xlsx');
-    }
-    public function export_dinamic_ticket(){
-        $dateStart = Carbon::now()->startOfMonth()->subMonth(3);
-        // $dateEnd = Carbon::now()->startOfDay()->subDays(5);
-        $dateEnd = Carbon::now();
-
-        $import = new ticketDinamico($dateStart, $dateEnd);
-
-        $import->onlySheets('Detalle General', 'Estatus Contabilizado');
-        // $import->onlySheets('Detalle General');
-
-        return Excel::download($import, 'Consulta-Mantenimientos.xlsx');
-    }
-
     public function exportCotizacion($nombre_archivo){
 
         $path = \Storage::disk('tickets_cotizaciones')->path($nombre_archivo);
@@ -1265,5 +1560,66 @@ class TicketsController extends Controller
 
         return response()->download($path);
     }
+
+    public function exportEvidenciaPago($nombre_archivo){
+
+        $path = \Storage::disk('tickets_evidencias_pago')->path($nombre_archivo);
+
+        return response()->download($path);;
+    }
+
+// NOTIFICACIONES WHATSAPP
+    public function notificarModificacionWhatapp($destinatario, $data_whats){
+        $payload = [
+            "messaging_product" => 'whatsapp',
+            "recipient_type" => 'individual',
+            "to" => $destinatario,
+            "type" => 'text',
+            "text" => [
+                "preview_url" => 'true',
+
+                "body" =>  $data_whats['contenido'],
+            ]
+        ];
+
+        // ajustar al formato de envio
+        $payload = json_encode($payload);
+
+        // permitir saltos de linea
+        $payload = str_replace('%0A','\n', $payload);
+
+        // Envio del mensaje via Curl
+        self::enviar($payload);
+    }
+
+    // Enviar contenido
+    public function enviar($payload){
+        $id_telefono = '373083419225618';
+        $token = 'EABvGrmq3yZCoBO070vYK6Vmd9vqKN07zc57HKFE5wZBkI2WzCcAzdUhrIKnDTdvUKkECZAIMCOHmsjFykcepQnptmcVZCTKWiGuZB1HH2t1ZCtIgwRUoZBzImOTTvgTrZBguDBgCZAbrLigqZAH4KLZAWDG5sX7IVFweg77D2rsnXuRC0kIWhUS6DD7hFqWWZBJ4Wpz3igZDZD';
+
+        // Envio del mensaje via Curl
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://graph.facebook.com/v20.0/'. $id_telefono . '/messages',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS =>$payload,
+
+            CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . $token
+                ),
+            ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+    }
+
 }
 

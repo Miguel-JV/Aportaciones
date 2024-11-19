@@ -26,6 +26,10 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('modificar.personal') }}"> <i class="fa-solid fa-users"></i></i> Personal</a>
             </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('consultar.ticket.finalizado') }}"> <i class="fa-regular fa-money-bill-1"></i> Finalizados</a>
+            </li>
         </ul>
 
         <div class="container form-container mt-5" style="width: 50%;">
@@ -61,12 +65,7 @@
                 <button type="submit" class="btn btn-success">Descargar</button>
             </form>
 
-            {{-- <div class="text-center">
-                <a href="{{ route('tickets.consulta') }}" class="btn btn-success btn-custom-end-dataTable">
-                    <i class="fa-regular fa-file-excel"></i>
-                    Exportar Consulta
-                </a>
-            </div> --}}
+
         </div>
 
 @endsection

@@ -18,6 +18,13 @@
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css" rel="stylesheet">
 
     <style>
+        .file-note{
+            color: gray;
+            font-style:italic;
+            font-family: cursive;
+            font-size: 14px;
+        }
+        
         .form-container {
             max-width: 900px;
             /* margin: 50px auto; */
@@ -65,6 +72,7 @@
             background-color: rgba(0, 0, 0, 0.168);
         }
 
+        /*CIRCULO*/
         .loading-content {
             position: absolute;
             border: 16px solid #f3f3f3; /* Light grey */
@@ -94,41 +102,6 @@
     <section id="loading">
         <div id="loading-content"></div>
     </section>
-
-    {{-- BARRA DE NAVEGACIÓN --}}
-    {{-- <ul class="nav nav-tabs">
-
-        <li class="nav-item">
-            <a class="nav-link active" href="#">Tickets</a>
-        </li>
-
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Dropdown</a>
-            <div class="dropdown-menu">
-            <a class="dropdown-item" href="#">Action</a>
-            <a class="dropdown-item" href="#">Another action</a>
-            <a class="dropdown-item" href="#">Something else here</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="#">Separated link</a>
-            </div>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link" href="#">Consultas</a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link" href="#">Cotizaciones</a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link" href="#">Reportes XLS</a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link disabled" href="#">Disabled</a>
-        </li>
-    </ul> --}}
 
     @yield('contenido')
 

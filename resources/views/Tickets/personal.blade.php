@@ -64,6 +64,10 @@
         <li class="nav-item">
             <a class="nav-link active" href="{{ route('modificar.personal') }}"> <i class="fa-solid fa-users"></i></i> Personal</a>
         </li>
+
+        <li class="nav-item">
+                <a class="nav-link" href="{{ route('consultar.ticket.finalizado') }}"> <i class="fa-regular fa-money-bill-1"></i> Finalizados</a>
+            </li>
     </ul>
 
 
@@ -130,6 +134,58 @@
                 </table>
 
                 <button type="submit" class="btn btn-outline-info" style="margin-left: 95%"><i class="fa-solid fa-floppy-disk"></i></button>
+            </form>
+
+        </div>
+
+        {{-- Subtitulo --}}
+        <div class="d-flex align-items-center p-3 my-3 text-white bg-title-assign rounded shadow-sm flex-centered" >
+            <i class="fa-solid fa-users" style="margin-right: 20px;"z></i></i>
+
+            <div class="lh-1" style="justify-items: : center;">
+                <h1 class="h6 mb-0 text-white lh-1"> Asignar Contacto General</h1>
+            </div>
+        </div>
+
+        {{-- FORMULARIO DE ASINGACION CONTACTO GENERAL--}}
+        <div class="my-3 p-3 bg-body rounded shadow-sm">
+
+            <form id="encargados_asignar" action=" {{ route('asignar.correo.casa') }}" method="POST" >
+                @csrf
+                @method('PATCH')
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope='col'class="centered">CASA</th>
+                            <th scope='col'class="centered">CORREO</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <th scope="row">
+                                <select id="casas" name="casas" class="form-control" onchange="cargarDetallesCasaAssing(this)" required>
+                                    <option value="" >...</option>
+
+                                    @foreach ($casas as $casa)
+                                        <option  value="{{ $casa->ID_CASA }}"> {{ $casa->NOMBRE }}</option>
+                                    @endforeach
+                                </select>
+                            </th>
+
+                            <th scope="row">
+                                <input type="email" class="form-control" id="correo_assign" name="correo_assign" maxlength="40" pattern="[a-z0-9._%+-].+@[a-z0-9].com" required>
+                            </th>
+
+                        </tr>
+
+                    </tbody>
+                </table>
+
+                <button type="submit" class="btn btn-outline-success" style="margin-left: 95%"><i class="fa-solid fa-floppy-disk"></i></button>
+
+
             </form>
 
         </div>
@@ -203,6 +259,9 @@
 
         </div>
 
+
+
+
         {{-- Subtitulo --}}
         <div class="d-flex align-items-center p-3 my-3 text-white bg-title-delete rounded shadow-sm flex-centered" >
             <i class="fa-solid fa-users" style="margin-right: 20px;"z></i></i>
@@ -275,7 +334,7 @@
             <form id="relaciones_encargados_eliminar" action=" {{ route('eliminar.relacion.personal') }}" method="POST">
                 @csrf
 
-                <table id="relacionesTable" class="table table-striped table-bordered table-sm  table-hover checkbox-group required">
+                <table id="relacionesTable" class="table table-striped table-bordered table-sm  table-hover checkbox-group required" >
                     <thead>
                         <tr>
                             <th scope='col'class="centered">#</th>
@@ -298,8 +357,8 @@
                                 <th scope="row">{{ $relacion->encargado_area->NOMBRE }}</th>
                                 <th scope="row">{{ $relacion->casa->NOMBRE }}</th>
 
-                                <th scope="row" class="flex-centered">
-                                    <label>
+                                <th scope="row" class="flex-centered" >
+                                    <label  style="text-align:center;">
                                         <input type="checkbox" name="encargado_casa[{{ $relacion->ID_ENCARGADOS_CASAS }}]"  form="relaciones_encargados_eliminar" value="{{ $relacion->ID_ENCARGADOS_CASAS }}" onclick="revisarCheck()"/>
                                         <i class="fa-solid fa-user-slash user-delete"></i>
                                     </label>
@@ -325,6 +384,9 @@
     </script>
 
     <script>
+    //RUTAS
+        //let strroute = '/Aportaciones/tickets/creacion/'
+        let strroute = '/tickets/creacion/'
 
     // RECURSOS DE LIMPIEZA DE SELECTS
         function limpiarElemento(element){
@@ -342,7 +404,7 @@
             // let area = encargadoSelect.options[encargadoSelect.selectedIndex].dataset.area;
 
             // Cargar colecciones de las dependencias de los encargados
-            fetch(`/tickets/creacion/${id}/Encargados`)
+            fetch(`${strroute}${id}/Encargados`)
                 .then(response => response.json())
                 .then(jsonData => crearDetallesAssign(jsonData))
 
@@ -360,12 +422,30 @@
 
         }
 
+        function cargarDetallesCasaAssing(casaSelect) {
+            let id = casaSelect.value;
+
+            // Cargar colecciones de las dependencias de los encargados
+            fetch(`${strroute}${id}/Casas`)
+                .then(response => response.json())
+                .then(jsonData => crearCorreoAssign(jsonData))
+
+        }
+
+        function crearCorreoAssign(jsonDetalles){
+            let correoInput = document.getElementById('correo_assign');
+
+            limpiarElemento(correoInput);
+
+            correoInput.value   = jsonDetalles.CORREO;
+        }
+
     // ENCARGADOS DELETE
         function cargarDetallesEncargadoDelete(encargadoSelect) {
             let id = encargadoSelect.value;
 
             // Cargar colecciones de las dependencias de los encargados
-            fetch(`/tickets/creacion/${id}/Encargados`)
+            fetch(`${strroute}${id}/Encargados`)
                 .then(response => response.json())
                 .then(jsonData => crearDetallesDelete(jsonData))
 

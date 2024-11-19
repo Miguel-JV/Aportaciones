@@ -144,6 +144,12 @@
                     </tr>
                     <tr>
 
+                        <td style="text-align: center; font-weight: bold;">Area</td>
+                        <td style="text-align: justify;">{{ $data['area'] }}</td>
+
+                    </tr>
+                    <tr>
+
                         <td style="text-align: center; font-weight: bold;">Entorno</td>
                         <td style="text-align: justify;">{{ $data['entorno'] }}</td>
 
@@ -229,6 +235,7 @@
                 <a href="{{ route('validar.ticket',
                     [
                         'ticket' => $data['ticket'],
+                        'encargado' => $data['destinatario'],
                     ]) }}">
                     <button>
                         <span>

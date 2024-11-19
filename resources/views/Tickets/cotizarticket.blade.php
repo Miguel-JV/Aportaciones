@@ -6,29 +6,12 @@
 @endsection
 
 @section('css')
-    {{-- Zoom 1 --}}
     <style>
-        .container-enlarge {
-            display: inline-block;
-            position: relative;
+        .file-note{
+            color: gray;
+            font-style:italic;
+            font-family: cursive;
         }
-        .container-enlarge > img {
-            height: auto;
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 5px;
-        }
-        .container-enlarge span {
-            position: absolute;
-            top: -9999em;
-            left: -9999em;
-        }
-        .container-enlarge:hover span {
-            top: -300px;
-            left: -70px;
-            width: 400px;
-        }
-
 
     </style>
 
@@ -79,7 +62,7 @@
 
     </style>
 
-    {{-- Modificar Card --}}
+    {{-- Modificar Boton --}}
     <style>
         body{
             background-color: #ededed;
@@ -138,13 +121,19 @@
             <div class="form-header">
                 <h1>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h1>
                 <h2>TICKET AUTORIZADO</h2>
-                <h3>No se permiten más cotizaciones</h3>
+                <h3>No se permiten más cotizaciones.</h3>
 
             </div>
-
+        </div>
+    @elseif($ticket->ESTATUS_AUTORIZACION == 'ANULADO')
+        <div class="container form-container">
+            <div class="form-header">
+                <h1>{{ $ticket->CASA }} - {{ $ticket->FOLIO }}</h1>
+                <h2>TICKET NO AUTORIZADO</h2>
+                <h3>No se permiten más cotizaciones.</h3>
+            </div>
 
         </div>
-
     @elseif($ticket->ESTATUS_COTIZACION == 'NO' && $ticket->FECHA_COMPROMISO)
     <div class="container form-container">
         <div class="form-header">
@@ -163,10 +152,7 @@
                     MODIFICAR
                 </button>
             </a>
-
         </div>
-
-
     </div>
 
     @elseif ($ticket->ESTATUS_COTIZACION == 'NO')
@@ -209,8 +195,11 @@
                 <div class="form-row justify-content-center">
                     <div class="form-group col-md-6">
 
-                        <input id="archivo_opcional" name="archivo_opcional" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".xlsx"  /> <br>
+                        <input id="archivo_opcional" name="archivo_opcional" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".docx, .pdf, .xlsx"  /> <br>
                         <label id="lbl_archivo_opcional" for="archivo_opcional" class="btn btn-outline-warning" onmouseover="asignarNombre(this)">Adjuntar Documento Opcional</label>
+
+                        <br>
+                        <label for="archivo_pago" class="file-note" >Archivos .docx, .pdf, .xlsx</label>
                     </div>
 
                     <div class="form-group col-md-4" style="align-items: center;">
@@ -228,7 +217,7 @@
 
                         <label for="foto_evidencia_1">Foto Evidencia</label><br>
                         <div class="img-zoom-container">
-                            <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_OBLIGATORIA)}}" >
+                            <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_OBLIGATORIA) }}" >
                         </div>
                     </div>
 
@@ -236,7 +225,7 @@
 
                         <label for="foto_evidencia_1">Foto Evidencia</label><br>
                         <div class="img-zoom-container">
-                            <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_2)}}" >
+                            <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_2) }}" >
 
                             {{-- Imagen de Acercamiento --}}
                             <div id="myresult" class="img-zoom-result"></div>
@@ -247,7 +236,7 @@
 
                         <label for="foto_evidencia_1">Foto Evidencia</label><br>
                         <div class="img-zoom-container">
-                            <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset("storage/tickets/evidencias/" . $ticket->FOTO_3)}}" >
+                            <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_3) }}" >
                         </div>
                     </div>
 
@@ -367,7 +356,7 @@
             let idExtencion = nombreArchivo.lastIndexOf(".") + 1;
             let extArchivo = nombreArchivo.substr(idExtencion, nombreArchivo.length).toLowerCase();
 
-            if (extArchivo=="xlsx"){
+            if (extArchivo=="docx" || extArchivo=="pdf" ||extArchivo=="xlsx"){
 
                 let nombreArchivo = inputArchivo.files[0].name;
                 if (inputArchivo.value != "") {
@@ -379,7 +368,7 @@
             }else{
                 inputArchivo.value = "";
                 labelArchivo.className = 'btn btn-outline-warning'
-                labelArchivo.innerHTML = "Adjuntar Documento XLSX";
+                labelArchivo.innerHTML = "Adjuntar Formato docx, pdf, xlsx";
 
             }
         }

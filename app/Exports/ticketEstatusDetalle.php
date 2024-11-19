@@ -59,20 +59,11 @@ class ticketEstatusDetalle {
                     'finalizados' => $tickets_finalizados,
                 ];
 
-                // $sheet->setAutoSize(true);
 
-                // $sheet->setWidth(array(
-                //     'A'     =>  500,
-                //     'B'     =>  100
-                // ));
 
                 $sheet->loadView('exports.ticketEstatusDetalle', [
                     'resultado' => $resultado
                 ]);
-
-                // $sheet->setAutoSize(array(
-                //     'A', 'B', 'C' , 'D'
-                // ));
 
 
             });

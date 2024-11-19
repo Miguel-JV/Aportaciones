@@ -13,7 +13,7 @@ class tickets extends Model
         'ID_CASA',
         'ID_AFECCION',
         'ID_ENTORNO',
-        'ID_TIPO_DAÑO',
+        'ID_TIPO_DANO',
 
         'FOLIO',
         'FECHA_INICIO',
@@ -52,6 +52,10 @@ class tickets extends Model
         'ESTATUS_COTIZACION',
         'ESTATUS_AUTORIZACION',
         'ESTATUS_ACTUAL',
+        'ESTATUS_PAGO',
+
+        'EVIDENCIA_PAGO',
+
 
         'FECHA_FIN',
         'AREA_ATENCION',

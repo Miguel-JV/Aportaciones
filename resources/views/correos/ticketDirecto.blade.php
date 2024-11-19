@@ -94,15 +94,15 @@
         </div>
         <div class="content">
             <h1>Informe de Nuevo Ticket <br>
-                @if ($data['reinicidencia'] == 'SI')
+                @if($data['daño'] == 'Siniestro - Temblor' || $data['daño'] == 'Siniestro - Desastre Meteorilógico')
+                    {{$data['daño']}} - {{ $data['casa'] }}<br>
+                    {{ $data['folio'] }} <br>
+                    {{ $data['area'] }}
+
+                @elseif ($data['reinicidencia'] == 'SI')
                     Reincidente -  {{ $data['area'] }}<br>
                     {{ $data['folio'] }} <br>
                     {{ $data['casa'] }}
-
-                @elseif ($data['daño'] == 'Siniestro')
-                    Siniestro - {{ $data['casa'] }} <br>
-                    {{ $data['folio'] }} <br>
-                    {{ $data['area'] }}
 
                 @else
                     {{ $data['folio'] }} - {{ $data['casa'] }} <br>
@@ -153,6 +153,12 @@
 
                         <td style="text-align: center; font-weight: bold;">Reinicidencia</td>
                         <td style="text-align: justify;">{{ $data['reinicidencia'] }}</td>
+
+                    </tr>
+                    <tr>
+
+                        <td style="text-align: center; font-weight: bold;">Area</td>
+                        <td style="text-align: justify;">{{ $data['area'] }}</td>
 
                     </tr>
                     <tr>
