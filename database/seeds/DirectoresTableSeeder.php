@@ -3,7 +3,7 @@
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\directores;
-
+use Illuminate\Support\Facades\Hash;
 class DirectoresTableSeeder extends Seeder
 {
     /**
@@ -13,7 +13,7 @@ class DirectoresTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('directores')->insert(['ID_DIRECTOR' => 1,  'ID_CASA' => 1, 'NOMBRE' => 'Gabriel Reyes Betanzos', 'CORREO' => 'gabriel.reyes@telmexeducacion.com']);
+        // DB::table('directores')->insert(['ID_DIRECTOR' => 1,  'ID_CASA' => 1, 'NOMBRE' => 'Gabriel Reyes Betanzos', 'CORREO' => 'gabriel.reyes@telmexeducacion.com']);
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/directores.csv"), "r");
         $firstline = true;
@@ -22,11 +22,11 @@ class DirectoresTableSeeder extends Seeder
             if (!$firstline) {
                 directores::create([
 
-                    "ID_DIRECTOR" => $data['0'],
-                    "ID_CASA" => $data['1'],
+                    "ID_DIRECTOR"   => $data['0'],
+                    "ID_CASA"       => $data['1'],
 
-                    "NOMBRE" => $data['2'],
-                    "CORREO" => $data['3'],
+                    "NOMBRE"        => $data['2'],
+                    "CORREO"        => $data['3'],
 
                 ]);
 

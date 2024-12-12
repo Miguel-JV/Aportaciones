@@ -69,10 +69,12 @@
             @if (Route::has('login'))
                 <div class="top-right links">
                     @auth
-                        <a href="{{ url('/home') }}">Home</a>
+                        {{-- <a href="{{ url('/home') }}">Home</a> --}}
+                        <a href="{{ route('consultar.ticket') }}">MANTENIMIENTOS</a>
                     @else
-                        <a href="{{ route('login') }}">Login</a>
-                        <a href="{{ route('register') }}">Register</a>
+                        {{-- <a href="{{ route('login') }}">Login</a> --}}
+                        <a href="{{ route('login.tickets') }}">Login</a>
+                        {{-- <a href="{{ route('register') }}">Register</a> --}}
                     @endauth
                 </div>
             @endif
@@ -83,8 +85,9 @@
                 </div>
 
                 <div class="links">
-                    <a href="{{ route('pruebas') }}">Pruebas</a>
-                    <a href="{{ route('landing.index') }}">Propuesta</a>
+                    {{-- <a href="{{ route('pruebas') }}">Pruebas</a> --}}
+                    <a href="{{ route('landing.aldea') }}">Propuesta Aldea</a>
+                    <a href="{{ route('landing.general') }}">Propuesta General</a>
                 </div>
             </div>
         </div>

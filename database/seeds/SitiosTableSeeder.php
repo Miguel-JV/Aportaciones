@@ -15,7 +15,7 @@ class SitiosTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('sitios')->insert(['ID_SITIO' => 1,  'ID_ENTORNO' => 1, 'SITIO' => 'Aliados_tecnológicos']);
+        // DB::table('sitios')->insert(['ID_SITIO' => 1,  'ID_ENTORNO' => 1, 'SITIO' => 'Aliados_tecnológicos']);
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/sitios.csv"), "r");
         $firstline = true;

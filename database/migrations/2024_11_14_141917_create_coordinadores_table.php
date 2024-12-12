@@ -16,12 +16,17 @@ class CreateCoordinadoresTable extends Migration
 
         Schema::create('coordinadores', function (Blueprint $table) {
             $table->increments('ID_COORDINADOR');
+
             $table->string('NOMBRE', 50)->charset('utf8');
-            $table->string('TELEFONO', 30)->charset('utf8');
+            $table->string('TELEGRAM', 30)->charset('utf8');
             $table->string('CORREO', 50)->charset('utf8');
             $table->boolean('VALIDACION')->default(false);
+
+            $table->rememberToken();
+
             // $table->timestamps();
         });
+
     }
 
     /**

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 // Controlador de Modelos
 use DB;
+use Auth;
+
 
 use App\casas;
 use App\directores;
@@ -24,6 +26,7 @@ use App\encargados;
 use App\encargados_casas;
 
 use App\modificaciones;
+use App\User;
 
 
 // Controlador de correos
@@ -39,7 +42,7 @@ use App\Mail\AutorizacionTicket;
 use App\Mail\AnulacionTicket;
 use App\Mail\NotificacionTicketDirecto;
 use App\Mail\ReporteMensualMantenimientos;
-
+use App\Mail\RecordatorioTicketNoCotizado;
 
 // Obtención de campos
 use Illuminate\Http\Request;
@@ -61,19 +64,18 @@ use Carbon\Carbon;
 // Namespace para encriptacióon de cadenas
 use Illuminate\Support\Facades\Crypt;
 
+// NameSpace Telegram
+use App\Http\Controllers\TelegramController;
+
+
 class TicketsController extends Controller
 {
     public function __construct()
     {
         // $this->strroute = 'storage/app/public/tickets/evidencias/';
         $this->strroute = 'storage/tickets/evidencias/';
+        // $this->middleware('auth');
     }
-
-// CONTROL DE REGISTROS POR TRIMESTRE (KERNEL AUTOMATIZADO)
-    // public function eliminarFotoTicket($nombre_foto){
-    //     // $nombre_foto = '1728068080_1.jpg';
-    //     \Storage::disk('tickets')->delete($nombre_foto);
-    // }
 
 
 
@@ -97,13 +99,14 @@ class TicketsController extends Controller
     public function obtenerAfecciones($id){
         $casa = casas::find($id);
         $ignorarAfecciones = [];
+        //14,15,16->Afecciones Base Pasada
         // IGNORAR AFECCIONES QUE NO LE CORRESPONDEN ALDEA
         if ($casa->ID_CASA == 1){
             // IGNORAR ->DETERIORO, INFRAESTRUCTURA , SEGURIDAD -> (INDIVIDUAL)
-            $ignorarAfecciones = [3,6,11];
+            $ignorarAfecciones = [3,6,11,14,15,16];
         }else{
             // IGNORAR ->DETERIORIOROS, INFRAESTRUCTURAS, SEGURIDAD ALDEA ->POR ENTORNO(INTERNOS EXTERNOS)
-            $ignorarAfecciones = [4,5, 7,8, 12];
+            $ignorarAfecciones = [4,5, 7,8, 12,14,15,16];
         }
         return afecciones::whereNotIn('ID_AFECCION',$ignorarAfecciones)->get();
     }
@@ -226,18 +229,17 @@ class TicketsController extends Controller
 
 // VISTAS
     public function crearTickets(){
+        // No considerar casas no existentes admin
+        $casas = casas::whereNotIn('ID_CASA',[11,12,13])->get();
 
-        $casas = casas::all();
-        $directores = directores::all();
-        $drives = drives::all();
+        if (Auth::user()->rol == 'director') {
+            $casaDirector =  casas::where('ID_CASA', Auth::user()->userable->casa->ID_CASA)->first();
+        }
+
+
         $tipos_danos = tipos_danos::all();
-        $afecciones = afecciones::all();
-        $areas = areas::all();
+
         $entornos = entornos::all();
-        $sitios = sitios::all();
-        $espacios = espacios::all();
-        $objetos = objetos::all();
-        $elementos_objetos = elementos_objetos::all();
 
         // Formato de folio RM-AÑO/ID_NUEVO-CASA(ABREVIADO)
         $folio  = '[RM-' .  date("Y") . ']-';
@@ -252,7 +254,7 @@ class TicketsController extends Controller
 
         return view('Tickets.crearticket',
         compact(
-            'casas', 'directores', 'drives',
+            'casas', 'casaDirector', 'directores', 'drives',
             'tipos_danos', 'afecciones', 'areas',
             'entornos','sitios', 'espacios',
             'objetos', 'elementos_objetos', 'folio'
@@ -260,15 +262,30 @@ class TicketsController extends Controller
     }
 
     public function consultarTickets(){
-        $currentYear = date('Y');
-        $tickets = tickets::whereYear('FECHA_INICIO', $currentYear)->orderBy('FECHA_INICIO', 'DESC')->get();
+        switch (Auth::user()->rol) {
+            case 'coordinador':
+                $currentYear = date('Y');
+                $tickets = tickets::whereYear('FECHA_INICIO', $currentYear)->orderBy('FECHA_INICIO', 'DESC')->get();
+                break;
+            case 'director':
+                $currentYear = date('Y');
+                $tickets = tickets::whereYear('FECHA_INICIO', $currentYear)->where('ID_CASA', Auth::user()->userable->casa->ID_CASA)
+                ->orderBy('FECHA_INICIO', 'DESC')->get();
+                break;
 
+            default:
+                $currentYear = date('Y');
+                $tickets = tickets::whereYear('FECHA_INICIO', $currentYear)->orderBy('FECHA_INICIO', 'DESC')->get();
+                break;
+        }
         return view('Tickets.consultarticket', compact('tickets'));
 
+        // foreach (Auth::user()->userable->casa as $casa) {
+        //     echo $casa->ID_CASA;
+        // }
     }
 
     public function generaReporteTickets(){
-
         $now = Carbon::now()->format("Y-m-d");
         $startWeek = Carbon::now()->startOfWeek()->format("Y-m-d");
 
@@ -278,10 +295,10 @@ class TicketsController extends Controller
     }
 
     public function actualizarTickets(tickets $ticket){
-        $areas = areas::all();
-        $id_siniestros =  DB::table('areas')->select('ID_AREA')->where('NOMBRE', 'Siniestros');
+        $id_siniestros =  DB::table('areas')->select('ID_AREA')->where('NOMBRE', 'Siniestros')->first()->ID_AREA;
+        $id_aliadosTec =  DB::table('areas')->select('ID_AREA')->where('NOMBRE', 'Aliados Tecnológicos')->first()->ID_AREA;
 
-        $areas = areas::whereNotIn('ID_AREA',$id_siniestros)->get();
+        $areas = areas::whereNotIn('ID_AREA',[$id_siniestros,$id_aliadosTec])->get();
         $strroute = $this->strroute;
 
         return view('Tickets.actualizarticket', compact('ticket', 'areas', 'strroute'));
@@ -338,8 +355,11 @@ class TicketsController extends Controller
 
 
     public function modificarPersonal(){
-        $casas = casas::all();
-        $areas = areas::all();
+
+        // No considerar casas no existentes
+        $casas = casas::whereNotIn('ID_CASA',[11,12,13])->get();
+
+        $areas = areas::whereNotIn('ID_AREA',[13])->get();
         $encargados = encargados::all();
         $encargados_casas = encargados_casas::all();
 
@@ -351,12 +371,10 @@ class TicketsController extends Controller
     }
 
 
-
-
-    public function consultarTicketsFinalizados(){
+    public function consultarTicketsPago(){
         $currentYear = date('Y');
 
-        $tickets = tickets::whereYear('FECHA_INICIO', $currentYear)->where([
+        $ticketsFinalizados = tickets::whereYear('FECHA_INICIO', $currentYear)->where([
             ['ESTATUS_ACTUAL', 'FINALIZADO'],
             ['AREA_RESPONSABLE','<>','SEDENA'],
             ['AREA_RESPONSABLE','<>','SEMAR'],
@@ -364,9 +382,19 @@ class TicketsController extends Controller
             ['DAÑO','<>','Siniestro - Temblor'],
             ['REINCIDENCIA','<>','SI'],
 
-            ])->orderBy('FECHA_INICIO', 'DESC')->get();
-        // $tickets = $tickets;
-        return view('Tickets.consultarticketsfinalizados', compact('tickets'));
+        ])->orderBy('FECHA_INICIO', 'DESC')->get();
+
+        $ticketsPendientes = tickets::whereYear('FECHA_INICIO', $currentYear)->where([
+            ['ESTATUS_ACTUAL', 'PENDIENTE'],
+            ['COTIZACION',0],
+
+        ])->orderBy('FECHA_INICIO', 'DESC')->get();
+
+
+        $coordinador = coordinadores::where("VALIDACION", true)->first();
+        $encrypted = Crypt::encryptString($coordinador->NOMBRE);
+
+        return view('Tickets.consultarTicketsPago', compact('ticketsFinalizados', 'ticketsPendientes', 'encrypted'));
 
     }
 
@@ -374,6 +402,32 @@ class TicketsController extends Controller
         $strroute = $this->strroute;
 
         return view('Tickets.actualizarpagoticket', compact('ticket', 'strroute'));
+    }
+
+    public function cotizarTicketsPendientes(tickets $ticket, $encrypted){
+        $strroute = $this->strroute;
+        $decrypted = Crypt::decryptString($encrypted);
+
+        return view('Tickets.cotizarTicketPendiente', compact('ticket', 'strroute', 'decrypted'));
+    }
+
+    public function consultarTicketsPasados(){
+
+        $tickets = tickets::where([
+            ['FOTO_OBLIGATORIA',NULL],
+            ['EVIDENCIA_TERMINO',NULL],
+
+            ])->where('ID_CASA', Auth::user()->userable->casa->ID_CASA)
+            ->orderBy('FECHA_INICIO', 'DESC')->get();
+
+        return view('Tickets.consultarTicketsPasados', compact('tickets'));
+
+    }
+
+    public function actualizarTicketsPasados(tickets $ticket){
+        $strroute = $this->strroute;
+
+        return view('Tickets.actualizarEvidenciaTicket', compact('ticket', 'strroute'));
     }
 // ACCION FORMULARIOS
 
@@ -415,9 +469,9 @@ class TicketsController extends Controller
         $estatus_casa =     casas::find($request->input('casa'))->ESTATUS;
 
         // Carga y guardado de Imagenes
-        $foto_1 =             self::cargaImg($request->file('foto_obligatoria'));
-        $foto_2 =             self::cargaImg($request->file('foto_opcional_2'));
-        $foto_3 =             self::cargaImg($request->file('foto_opcional_3'));
+        $foto_1 =             self::cargaImgEvidencia($request->file('foto_obligatoria'));
+        $foto_2 =             self::cargaImgEvidencia($request->file('foto_opcional_2'));
+        $foto_3 =             self::cargaImgEvidencia($request->file('foto_opcional_3'));
         $arreglo_fotos =              [$foto_1, $foto_2, $foto_3];
 
         // Devolver arreglo sin fotos vacías
@@ -512,16 +566,17 @@ class TicketsController extends Controller
         ];
 
         // Enviar correo a Vo.Bo.
-        $cc = 'reportes.bdt@gmail.com';
+        $telegram = new TelegramController();
+
         foreach ($ticket->casa->coordinador_casa as $coordinador) {
             if ($coordinador->VALIDACION == true) {
                 $data['destinatario'] = $coordinador->NOMBRE;
                 self::enviarNuevoTicket($data, $coordinador->CORREO);
 
-                //Notificar whatsapp ($destinatario, data)
-                $data_whats['contenido'] = '_NUEVO TICKET A VALIDAR - '. $coordinador->NOMBRE .'_ %0A %0A'.
-                '* _'.$ticket->CASA.' - '.$ticket->AREA_RESPONSABLE.'_';
-                self::notificarModificacionWhatapp($coordinador->TELEFONO, $data_whats);
+                $payload = "<b>NUEVO TICKET A VALIDAR</b>%0A".
+                $ticket->CASA. " - ".$ticket->AREA_RESPONSABLE. " - ".$ticket->AFECCION;
+
+                $telegram->sendText($coordinador->TELEGRAM, $payload);
             }
         }
 
@@ -549,8 +604,8 @@ class TicketsController extends Controller
         $ticket->save();
 
 
-        $area             = areas::where('NOMBRE', $ticket->AREA_RESPONSABLE)->first();
-        $area_responsable = $ticket->AREA_RESPONSABLE;
+        $area             = $ticket->afeccion->area_afeccion;
+        $area_responsable = $ticket->afeccion->area_afeccion->NOMBRE;
 
         $fotos      = self::generarArregloFotos($ticket);
         // Contenido del correo
@@ -625,11 +680,13 @@ class TicketsController extends Controller
                     Mail::to($correo)->send(new NotificacionTicketDirecto($data));
                 }
 
-                //Notificar whatsapp ($destinatario, data)
-                foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
-                    $data_whats['contenido'] = '_NUEVO TICKET GENERADO - '. $nombre .'_ %0A %0A'.
-                    '* _'.$ticket->CASA.' - '.$ticket->AREA_RESPONSABLE.'_';
-                    self::notificarModificacionWhatapp($telefono, $data_whats);
+                //Notificar TELEGRAM ($destinatario, data)
+                $telegram = new TelegramController();
+
+                foreach ($destinatarios['coordinadores-tel'] as $nombre => $chat_id) {
+                    $payload = "<b>NUEVO TICKET GENERADO - ".$ticket->FOLIO."</b>%0A".
+                    $ticket->CASA. " - ".$ticket->AREA_RESPONSABLE. " - ".$ticket->AFECCION;
+                    $telegram->sendText($chat_id, $payload);
                 }
                 break;
         }
@@ -653,6 +710,9 @@ class TicketsController extends Controller
         self::eliminarFotoTicket($ticket->FOTO_2);
         self::eliminarFotoTicket($ticket->FOTO_3);
 
+        $destinatario = $ticket->casa->director->CORREO;
+        self::enviarCorreoObservaciones($destinatario, $data);
+
         if (!empty($ticket->casa->CORREO)) {
             $destinatario = $ticket->casa->CORREO;
             // AÑADIR USUARIO CASA
@@ -666,7 +726,7 @@ class TicketsController extends Controller
     public function cotizar(Request $request, tickets $ticket, $usuario){
 
         $monto =                    $request->input('monto');
-        $fecha_compromiso =         $request->input('fecha_compromiso');
+        $fecha_compromiso =         $request->input('fecha_compromiso') == "" ? null : $request->input('fecha_compromiso');
 
         if (empty($monto)) {
             $ticket->ESTATUS_COTIZACION='NO';
@@ -698,7 +758,7 @@ class TicketsController extends Controller
             // NOTIFICAR FECHA COMPROMISO SIN CONSIDERAR AREA FINANZAS
             $cotizacion =                 false;
             self::envioCompromiso($ticket, $cotizacion);
-            $aux = '_NUEVO TICKET COMPROMETIDO - ';
+            $aux = '<b>NUEVO TICKET COMPROMETIDO - ';
         } else {
             $ticket->ESTATUS_COTIZACION='SI';
             $ticket->COTIZACION =       $monto;
@@ -727,19 +787,20 @@ class TicketsController extends Controller
             // NOTIFICAR COTIZACION CC-> AREA FINANZAS
             $cotizacion =               $monto;
             self::envioCompromiso($ticket, $cotizacion);
-            $aux = '_NUEVO TICKET COTIZADO - ';
+            $aux = '<b>NUEVO TICKET COTIZADO - ';
 
         }
 
 
-        //Notificar whatsapp ($destinatario, data)
+        //Notificar TELEGRAM ($destinatario, data)
+        $telegram = new TelegramController();
         $destinatarios = self::obtenerDestinatarios($ticket);
-        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
-            $data_whats['contenido']= $aux. $nombre .'_ %0A %0A'.
-            '* _'.$usuario.' - '.$ticket->AREA_RESPONSABLE.'_';
-            self::notificarModificacionWhatapp($telefono, $data_whats);
-        }
 
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $chat_id) {
+            $payload= $aux. $ticket->FOLIO .'</b>%0A %0A'.
+            '* '.$usuario.' - '.$ticket->AREA_RESPONSABLE;
+            $telegram->sendText($chat_id, $payload);
+        }
 
         return redirect()->route('consultar.ticket');
     }
@@ -824,20 +885,21 @@ class TicketsController extends Controller
         $area = areas::where('NOMBRE', 'Finanzas Filiales')->first();
         self::envioPrioritario($nivel, $area, $data);
 
-
-        //Notificar whatsapp ($destinatario, data)
+        //Notificar TELEGRAM ($destinatario, data)
+        $telegram = new TelegramController();
         $destinatarios = self::obtenerDestinatarios($ticket);
-        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
-            $data_whats['contenido'] = '_NUEVO TICKET AUTORIZADO - '. $nombre .'_ %0A %0A'.
-            '* _POR:'.$usuario.' - '.$ticket->AREA_RESPONSABLE.'_';
-            self::notificarModificacionWhatapp($telefono, $data_whats);
-        }
 
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $chat_id) {
+            $payload= "<b>NUEVO TICKET AUTORIZADO - ". $ticket->FOLIO.'</b>%0A %0A'.
+            '- Actualización de ticket por: '.$usuario;
+            $telegram->sendText($chat_id, $payload);
+        }
 
         return redirect()->route('consultar.ticket');
     }
 
     public function anular(Request $request, tickets $ticket, $usuario){
+
         $destinatarios = self::obtenerDestinatarios($ticket);
         $data = [
             'nuevo_ticket' =>           false,
@@ -864,6 +926,7 @@ class TicketsController extends Controller
 
         $ticket->ARCHIVO_COTIZACION = null;
         $ticket->ESTATUS_AUTORIZACION = 'ANULADO';
+        $ticket->ESTATUS_ACTUAL = 'ANULADO';
         $ticket->save();
 
 
@@ -879,24 +942,36 @@ class TicketsController extends Controller
 
         self::enviarCorreoAnulacion($destinatarios, $data);
 
-        //Notificar whatsapp ($destinatario, data)
-        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
-            $data_whats['contenido'] = '_TICKET NO AUTORIZADO - '. $nombre .'_ %0A %0A'.
-            '* _ACTUALIZADO POR:'.$usuario.' - '.$ticket->AREA_RESPONSABLE.'_';
-            self::notificarModificacionWhatapp($telefono, $data_whats);
+        //Notificar TELEGRAM ($destinatario, data)
+        $telegram = new TelegramController();
+
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $chat_id) {
+            $payload= "<b>NUEVO TICKET NO AUTORIZADO - ". $ticket->FOLIO .'</b>%0A %0A'.
+            '- ACTUALIZADO POR: '.$usuario.' - '.$ticket->AREA_RESPONSABLE;
+            $telegram->sendText($chat_id, $payload);
         }
 
         return redirect()->route('consultar.ticket');
     }
 
     public function actualizar(Request $request, tickets $ticket){
-
+        // return $request->all();
         $ticket->FECHA_FIN              = $request->input('fecha_termino');
         $ticket->AREA_ATENCION          = $request->input('area_atendio');
         $ticket->PERSONA_ATENCION       = $request->input('persona_atendio');
         $ticket->ESTATUS_ACTUAL         = $request->input('actualizar_estatus');
         // $ticket->EVIDENCIA = $request->input('link_evidencia');
         $ticket->OBSERVACIONES          = $request->input('observaciones_finales');
+
+        // Carga y guardado de Imagenes
+        $foto_1 =             self::cargaImgEvidenciaTermino($request->file('foto_obligatoria'));
+        $foto_2 =             self::cargaImgEvidenciaTermino($request->file('foto_opcional_2'));
+        $foto_3 =             self::cargaImgEvidenciaTermino($request->file('foto_opcional_3'));
+
+        $ticket->EVIDENCIA_TERMINO      = $foto_1;
+        $ticket->EVIDENCIA_TERMINO_2    = $foto_2;
+        $ticket->EVIDENCIA_TERMINO_3    = $foto_3;
+
 
         $modificacion = new modificaciones;
 
@@ -910,12 +985,15 @@ class TicketsController extends Controller
 
         $ticket->save();
 
-        //Notificar whatsapp ($destinatario, data)
+
+        //Notificar TELEGRAM ($destinatario, data)
+        $telegram = new TelegramController();
         $destinatarios = self::obtenerDestinatarios($ticket);
-        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
-            $data_whats['contenido'] = '_ACTUALIZACION ESTATUS - ' . $request->input('actualizar_estatus'). ' - '. $nombre .'_ %0A %0A'.
+
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $chat_id) {
+            $payload= "<b>ACTUALIZACION ESTATUS - ". $request->input('actualizar_estatus'). ' - '. $ticket->FOLIO .'</b>%0A %0A'.
             $ticket->CASA.' - ' . $request->input('area_atendio').': %0A'.$request->input('observaciones_finales');
-            self::notificarModificacionWhatapp($telefono, $data_whats);
+            $telegram->sendText($chat_id, $payload);
         }
 
         return redirect()->route('consultar.ticket');
@@ -930,9 +1008,7 @@ class TicketsController extends Controller
         $archivo->descargar();
 
     }
-    // -----------------------------------------------------------------
 
-    // -----------------------------------------------------------------
 
 
     // Personal
@@ -1032,26 +1108,63 @@ class TicketsController extends Controller
 
         $ticket->save();
 
-        //Notificar whatsapp ($destinatario, data)
+        //Notificar TELEGRAM ($destinatario, data)
+        $telegram = new TelegramController();
         $destinatarios = self::obtenerDestinatarios($ticket);
-        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
-            $data_whats['contenido'] = '_ACTUALIZACION ESTATUS - PAGADO - '. $nombre .'_ %0A %0A'.
-            '_'.$ticket->FOLIO.' - '.$ticket->CASA.' - '.$ticket->FECHA_INICIO.'_';
-            self::notificarModificacionWhatapp($telefono, $data_whats);
+
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $chat_id) {
+            $payload= "<b>ACTUALIZACION ESTATUS - PAGADO </b>%0A %0A".
+            '- '.$ticket->FOLIO.' - '.$ticket->CASA.' - '.$ticket->FECHA_INICIO;
+            $telegram->sendText($chat_id, $payload);
         }
 
         return redirect()->route('consultar.ticket.finalizado');
     }
 
+    public function actualizarPasado(Request $request, tickets $ticket){
+        // return $request->all();
+
+        $ticket->SUPERVISOR   = json_decode(self::obtenerSupervisores($ticket->ID_CASA, $ticket->ID_AFECCION))->NOMBRE;
+        $ticket->SUBGERENTE   = json_decode(self::obtenerSubgerentes($ticket->ID_CASA, $ticket->ID_AFECCION))->NOMBRE;
+        $ticket->GERENTE      = json_decode(self::obtenerGerentes($ticket->ID_CASA, $ticket->ID_AFECCION))->NOMBRE;
+
+        // Carga y guardado de evidencia
+        $evidencia_inicio           = self::cargaImgEvidencia($request->file('foto_inicio'));
+        $ticket->FOTO_OBLIGATORIA   = $evidencia_inicio;
+
+        if ($ticket->ESTATUS_ACTUAL == "FINALIZADO") {
+            // Carga y guardado de evidencia
+            $evidencia_fin              = self::cargaImgEvidenciaTermino($request->file('foto_fin'));
+            $ticket->EVIDENCIA_TERMINO  = $evidencia_fin;
+        }
+
+        $ticket->save();
+        return redirect()->route('consultar.ticket.pasado');
+    }
+
 // CARGA/BAJA IMAGENES y OBTENCION NOMBRE
-    public function cargaImg($file){
+    public function cargaImgEvidencia($file){
         if (is_null($file)){
             return null;
         }else{
             //obtenemos el nombre del archivo
             $nombre_foto =  time()."_".$file->getClientOriginalName();
             //indicamos que queremos guardar un nuevo archivo en el disco local
-            \Storage::disk('tickets_evidencias')->put($nombre_foto,  \File::get($file));
+            \Storage::disk('tickets_evidencias_inicio')->put($nombre_foto,  \File::get($file));
+
+            return $nombre_foto;
+        }
+    }
+
+    // CARGA/BAJA IMAGENES y OBTENCION NOMBRE
+    public function cargaImgEvidenciaTermino($file){
+        if (is_null($file)){
+            return null;
+        }else{
+            //obtenemos el nombre del archivo
+            $nombre_foto =  time()."_".$file->getClientOriginalName();
+            //indicamos que queremos guardar un nuevo archivo en el disco local
+            \Storage::disk('tickets_evidencias_termino')->put($nombre_foto,  \File::get($file));
 
             return $nombre_foto;
         }
@@ -1060,8 +1173,8 @@ class TicketsController extends Controller
     public function eliminarFotoTicket($nombre_foto){
         if ($nombre_foto != null) {
             // $nombre_foto = '1728068080_1.jpg';
-            \Storage::disk('tickets_evidencias')->delete($nombre_foto);
-            # code...
+            \Storage::disk('tickets_evidencias_inicio')->delete($nombre_foto);
+
         }
     }
 
@@ -1173,7 +1286,7 @@ class TicketsController extends Controller
                     $data['destinatario']  = $gerente->NOMBRE;
                     $data['encript']    = Crypt::encryptString($gerente->NOMBRE);
 
-                    $destinatario = 'mangel.jimenez@telmexeducacion.com';
+                    $destinatario = $gerente->CORREO;
 
                     if ($data['nuevo_ticket']) {
                         Mail::to($destinatario)->send(new GeneracionTicket($data));
@@ -1189,7 +1302,7 @@ class TicketsController extends Controller
                     $data['destinatario'] = $subgerente->NOMBRE;
                     $data['encript']    = Crypt::encryptString($subgerente->NOMBRE);
 
-                    $destinatario = 'jimenez.vazquez.miguel.a@gmail.com';
+                    $destinatario = $subgerente->CORREO;
 
                     if ($data['nuevo_ticket']) {
                         Mail::to($destinatario)->send(new GeneracionTicket($data));
@@ -1205,7 +1318,7 @@ class TicketsController extends Controller
                     $data['destinatario'] = $supervisor->NOMBRE;
                     $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
 
-                    $destinatario = 'miguelangelzz2900@gmail.com';
+                    $destinatario = $supervisor->CORREO;
 
                     if ($data['nuevo_ticket']) {
                         Mail::to($destinatario)->send(new GeneracionTicket($data));
@@ -1223,7 +1336,7 @@ class TicketsController extends Controller
                     $data['destinatario'] = $subgerente->NOMBRE;
                     $data['encript']    = Crypt::encryptString($subgerente->NOMBRE);
 
-                    $destinatario = 'jimenez.vazquez.miguel.a@gmail.com';
+                    $destinatario = $subgerente->CORREO;
 
                     if ($data['nuevo_ticket']) {
                         Mail::to($destinatario)->send(new GeneracionTicket($data));
@@ -1239,7 +1352,7 @@ class TicketsController extends Controller
                     $data['destinatario'] = $supervisor->NOMBRE;
                     $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
 
-                    $destinatario = 'miguelangelzz2900@gmail.com';
+                    $destinatario = $supervisor->CORREO;
 
                     if ($data['nuevo_ticket']) {
                         Mail::to($destinatario)->send(new GeneracionTicket($data));
@@ -1257,7 +1370,7 @@ class TicketsController extends Controller
                     $data['destinatario'] = $supervisor->NOMBRE;
                     $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
 
-                    $destinatario = 'miguelangelzz2900@gmail.com';
+                    $destinatario = $supervisor->CORREO;
 
                     if ($data['nuevo_ticket']) {
                         Mail::to($destinatario)->send(new GeneracionTicket($data));
@@ -1286,9 +1399,8 @@ class TicketsController extends Controller
                     $data['destinatario']  = $gerente->NOMBRE;
                     $data['encript']    = Crypt::encryptString($gerente->NOMBRE);
 
-                    $destinatario = 'mangel.jimenez@telmexeducacion.com';
-                    $cc = ['reportes.bdt@gmail.com'];
-                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+                    $destinatario = $gerente->CORREO;
+                    Mail::to($destinatario)->send(new NotificacionTicketDirecto($data));
 
                 }
 
@@ -1297,10 +1409,8 @@ class TicketsController extends Controller
                     $data['destinatario'] = $subgerente->NOMBRE;
                     $data['encript']    = Crypt::encryptString($subgerente->NOMBRE);
 
-                    $destinatario = 'jimenez.vazquez.miguel.a@gmail.com';
-                    $cc = ['reportes.bdt@gmail.com'];
-
-                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+                    $destinatario = $subgerente->CORREO;
+                    Mail::to($destinatario)->send(new NotificacionTicketDirecto($data));
 
                 }
 
@@ -1309,10 +1419,8 @@ class TicketsController extends Controller
                     $data['destinatario'] = $supervisor->NOMBRE;
                     $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
 
-                    $destinatario = 'miguelangelzz2900@gmail.com';
-                    $cc = ['reportes.bdt@gmail.com'];
-
-                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+                    $destinatario = $supervisor->CORREO;
+                    Mail::to($destinatario)->send(new NotificacionTicketDirecto($data));
 
                 }
             break;
@@ -1323,10 +1431,8 @@ class TicketsController extends Controller
                     $data['destinatario'] = $subgerente->NOMBRE;
                     $data['encript']    = Crypt::encryptString($subgerente->NOMBRE);
 
-                    $destinatario = 'jimenez.vazquez.miguel.a@gmail.com';
-                    $cc = ['reportes.bdt@gmail.com'];
-
-                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+                    $destinatario = $subgerente->CORREO;
+                    Mail::to($destinatario)->send(new NotificacionTicketDirecto($data));
 
                 }
 
@@ -1335,10 +1441,8 @@ class TicketsController extends Controller
                     $data['destinatario'] = $supervisor->NOMBRE;
                     $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
 
-                    $destinatario = 'miguelangelzz2900@gmail.com';
-                    $cc = ['reportes.bdt@gmail.com'];
-
-                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+                    $destinatario = $supervisor->CORREO;
+                    Mail::to($destinatario)->send(new NotificacionTicketDirecto($data));
 
                 }
             break;
@@ -1349,10 +1453,8 @@ class TicketsController extends Controller
                     $data['destinatario'] = $supervisor->NOMBRE;
                     $data['encript']    = Crypt::encryptString($supervisor->NOMBRE);
 
-                    $destinatario = 'miguelangelzz2900@gmail.com';
-                    $cc = ['reportes.bdt@gmail.com'];
-
-                    Mail::to($destinatario)->cc($cc)->send(new NotificacionTicketDirecto($data));
+                    $destinatario = $supervisor->CORREO;
+                    Mail::to($destinatario)->send(new NotificacionTicketDirecto($data));
 
                 }
             break;
@@ -1372,15 +1474,16 @@ class TicketsController extends Controller
 
 
         foreach ($ticket->casa->coordinador_casa as $coordinador) {
-            $destinatarios['coordinadores-tel']+= [$coordinador->NOMBRE  => $coordinador->TELEFONO];
+            $destinatarios['coordinadores-tel']+= [$coordinador->NOMBRE  => $coordinador->TELEGRAM];
             $destinatarios['coordinadores']    += [$coordinador->NOMBRE  => $coordinador->CORREO];
         }
 
         foreach ($ticket->casa->encargados_finanzas as $encargado) {
             // CAMBIAR CORREO ESTÁTICO POR DINÁMICO
-            $destinatarios['finanzas']         += [$encargado->NOMBRE    => 'reportes.bdt@gmail.com'];
+            $destinatarios['finanzas']         += [$encargado->NOMBRE    => $encargado->CORREO];
         }
 
+        // CONTACTO DE CASA DIRECTO
         if (!empty($ticket->casa->CORREO)) {
             $destinatarios['extra']            += [$ticket->casa->NOMBRE => $ticket->casa->CORREO];
         }
@@ -1390,21 +1493,24 @@ class TicketsController extends Controller
 
 
     public function notificarDestinatariosDirecto($destinatarios, $data){
+        // CORREO CORDINADORES
         foreach ($destinatarios['coordinadores'] as $nombre => $correo) {
             $data['destinatario']   = $nombre;
             $data['encript']        = Crypt::encryptString($nombre);
             $data['supervisor']     = true;
             Mail::to($correo)->send(new NotificacionTicketDirecto($data));
         }
+        // TELEGRAM
+        $telegram = new TelegramController();
+        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telegram) {
+            //Notificar TELEGRAM ($destinatario, data)
+            $payload = "<b>NUEVO TICKET A GENERADO</b>%0A".
+            $ticket->CASA. " - ".$ticket->AREA_RESPONSABLE. " - ".$ticket->AFECCION;
 
-        foreach ($destinatarios['coordinadores-tel'] as $nombre => $telefono) {
-            //Notificar whatsapp ($destinatario, data)
-            $data_whats['contenido'] = '_NUEVO TICKET GENERADO - '. $nombre .'_ %0A %0A'.
-            '* _'.$data['ticket']->CASA.' - '.$data['ticket']->AREA_RESPONSABLE.'_';
-            self::notificarModificacionWhatapp($telefono, $data_whats);
+            $telegram->sendText($coordinador->TELEGRAM, $payload);
         }
 
-        // Notificar a destinatarios extra SDN SEMAR
+        // Notificar a destinatarios extra (CASAS SDN SEMAR)
         foreach ($destinatarios['extra'] as $nombre => $correo) {
             $data['destinatario']   = $nombre;
             $data['encript']        = Crypt::encryptString($nombre);
@@ -1567,59 +1673,5 @@ class TicketsController extends Controller
 
         return response()->download($path);;
     }
-
-// NOTIFICACIONES WHATSAPP
-    public function notificarModificacionWhatapp($destinatario, $data_whats){
-        $payload = [
-            "messaging_product" => 'whatsapp',
-            "recipient_type" => 'individual',
-            "to" => $destinatario,
-            "type" => 'text',
-            "text" => [
-                "preview_url" => 'true',
-
-                "body" =>  $data_whats['contenido'],
-            ]
-        ];
-
-        // ajustar al formato de envio
-        $payload = json_encode($payload);
-
-        // permitir saltos de linea
-        $payload = str_replace('%0A','\n', $payload);
-
-        // Envio del mensaje via Curl
-        self::enviar($payload);
-    }
-
-    // Enviar contenido
-    public function enviar($payload){
-        $id_telefono = '373083419225618';
-        $token = 'EABvGrmq3yZCoBO070vYK6Vmd9vqKN07zc57HKFE5wZBkI2WzCcAzdUhrIKnDTdvUKkECZAIMCOHmsjFykcepQnptmcVZCTKWiGuZB1HH2t1ZCtIgwRUoZBzImOTTvgTrZBguDBgCZAbrLigqZAH4KLZAWDG5sX7IVFweg77D2rsnXuRC0kIWhUS6DD7hFqWWZBJ4Wpz3igZDZD';
-
-        // Envio del mensaje via Curl
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://graph.facebook.com/v20.0/'. $id_telefono . '/messages',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>$payload,
-
-            CURLOPT_HTTPHEADER => array(
-                    'Content-Type: application/json',
-                    'Authorization: Bearer ' . $token
-                ),
-            ));
-
-        $response = curl_exec($curl);
-
-        curl_close($curl);
-    }
-
 }
 

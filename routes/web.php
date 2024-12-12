@@ -21,8 +21,9 @@ Route::get('/storage-link', function () {
     Artisan::call('storage:link');
 });
 
-Route::get('/portal','LandingController@landing')->name('landing.index');
-Route::get('/portal/videos','LandingController@videosLanding')->name('landing.videos');
+Route::get('/portal/aldea','LandingController@landingAldea')->name('landing.aldea');
+Route::get('/portal/general','LandingController@landingGeneral')->name('landing.general');
+Route::get('/portal/videos','LandingController@cardAldea')->name('landing.card');
 
 
 
@@ -62,23 +63,33 @@ Route::group(['middleware'=>'XSS'], function() {
     Route::get('/exportar/evidenciaPago/{nombre}', 'TicketsController@exportEvidenciaPago')->name('exportar.evidencia.pago');
 
     // Vistas
-    Route::get('/tickets/creacion','TicketsController@crearTickets')->name('crear.tickets');
-    Route::get('/tickets/consultar','TicketsController@consultarTickets')->name('consultar.ticket');
-    Route::get('/tickets/reporte','TicketsController@generaReporteTickets')->name('reporte.ticket');
+    Route::middleware('auth')->group(function () {
+        Route::get('/tickets/creacion','TicketsController@crearTickets')->name('crear.tickets');
+        Route::get('/tickets/consultar','TicketsController@consultarTickets')->name('consultar.ticket');
+        Route::get('/tickets/reporte','TicketsController@generaReporteTickets')->name('reporte.ticket');
+        Route::get('/tickets/pesonal/modificar','TicketsController@modificarPersonal')->name('modificar.personal');
+        Route::get('/tickets/consultar/pago','TicketsController@consultarTicketsPago')->name('consultar.ticket.pago');
+        Route::get('/tickets/consultar/pasados','TicketsController@consultarTicketsPasados')->name('consultar.ticket.pasado');
+    });
+
+
+
 
 
     Route::get('/tickets/{ticket}/actualizacion','TicketsController@actualizarTickets')->name('actualizar.ticket');
     Route::get('/tickets/{ticket}/historial','TicketsController@historialTickets')->name('historial.ticket');
-    Route::get('/tickets/{ticket}/{encargado}/validacion','TicketsController@validarTickets')->name('validar.ticket');
 
+    Route::get('/tickets/{ticket}/{encargado}/validacion','TicketsController@validarTickets')->name('validar.ticket');
     Route::get('/tickets/{ticket}/{encargado}/cotizacion','TicketsController@cotizarTickets')->name('cotizar.ticket');
     Route::get('/tickets/{ticket}/{encargado}/modificar/cotizacion','TicketsController@modificarCotizacion')->name('modificar.cotizacion.ticket');
     Route::get('/tickets/{ticket}/{encargado}/autorizar','TicketsController@autorizarTicket')->name('autorizar.ticket');
 
-    Route::get('/tickets/pesonal/modificar','TicketsController@modificarPersonal')->name('modificar.personal');
 
-    Route::get('/tickets/consultar/finalizado','TicketsController@consultarTicketsFinalizados')->name('consultar.ticket.finalizado');
     Route::get('/tickets/{ticket}/actualizacion/finalizado','TicketsController@actualizarTicketsFinalizados')->name('actualizar.ticket.finalizado');
+    Route::get('/tickets/{ticket}/{encrypted}/cotización/pendientes','TicketsController@cotizarTicketsPendientes')->name('cotizar.ticket.pendiente');
+
+    Route::get('/tickets/{ticket}/actualizacion/pasados','TicketsController@actualizarTicketsPasados')->name('actualizar.ticket.pasado');
+
 
 
     // FORMULARIOS TICKETS
@@ -93,7 +104,8 @@ Route::group(['middleware'=>'XSS'], function() {
     Route::post('tickets/invalidate/{ticket}/{usuario}','TicketsController@anular')->name('invalidate.ticket');
 
     Route::patch('tickets/update/{ticket}','TicketsController@actualizar')->name('update.ticket');
-    Route::post('tickets/update/{ticket}/finalizado','TicketsController@actualizarFinalizado')->name('update.ticket.finalized');
+    Route::patch('tickets/update/{ticket}/finalizado','TicketsController@actualizarFinalizado')->name('update.ticket.finalized');
+    Route::patch('tickets/update/{ticket}/pasado','TicketsController@actualizarPasado')->name('update.ticket.past');
 
     // CRUD Personal Registrado
     Route::post('tickets/update/personal/delete/relations','TicketsController@eliminarRelacionPersonal')->name('eliminar.relacion.personal');
@@ -103,3 +115,14 @@ Route::group(['middleware'=>'XSS'], function() {
     Route::post('tickets/update/personal/create/person','TicketsController@crearPersonal')->name('crear.personal');
 
 });
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
+
+// LOGIN
+Route::prefix('loginTickets')->group(function(){
+    Route::get('/', 'Auth\LoginTicketsController@mostrarLogin')->name('login.tickets');
+    Route::post('/', 'Auth\LoginTicketsController@login')->name('login.tickets.submit');
+});
+

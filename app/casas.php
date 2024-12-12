@@ -43,5 +43,9 @@ class casas extends Model
         return $this->belongsToMany('\App\encargados', 'encargados_casas', 'ID_CASA', 'ID_ENCARGADO')->where('ID_AREA', $id_finanzas);
     }
 
+    public function director(){
+        return $this->belongsTo('\App\directores', 'ID_CASA');
+    }
+
 
 }

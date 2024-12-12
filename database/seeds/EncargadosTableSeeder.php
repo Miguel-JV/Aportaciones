@@ -14,7 +14,7 @@ class EncargadosTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('encargados')->insert(['ID_ENCARGADO' => 1,  'ID_AREA' => 2, 'NOMBRE' => 'Héctor Hugo González Pérez',    'PUESTO' => 'GERENTE', 'CORREO' => 'HGPEREZ@gta-mex.com']);
+        // DB::table('encargados')->insert(['ID_ENCARGADO' => 1,  'ID_AREA' => 2, 'NOMBRE' => 'Héctor Hugo González Pérez',    'PUESTO' => 'GERENTE', 'CORREO' => 'HGPEREZ@gta-mex.com']);
 
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/encargados.csv"), "r");

@@ -10,27 +10,7 @@
 
 
 @section('contenido')
-        {{-- BARRA DE NAVEGACIÓN --}}
-        <ul class="nav nav-tabs justify-content-center">
-
-            <li class="nav-item">
-                <a class="nav-link " href="{{ route('consultar.ticket') }}"> <i class="fa-solid fa-house"></i> Panel </a>
-            </li>
-
-
-            <li class="nav-item">
-                <a class="nav-link active" href="{{ route('reporte.ticket') }}"> <i class="fa-regular fa-file-excel"></i> Reportes</a>
-            </li>
-
-
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('modificar.personal') }}"> <i class="fa-solid fa-users"></i></i> Personal</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('consultar.ticket.finalizado') }}"> <i class="fa-regular fa-money-bill-1"></i> Finalizados</a>
-            </li>
-        </ul>
+        
 
         <div class="container form-container mt-5" style="width: 50%;">
             <div class="form-header">

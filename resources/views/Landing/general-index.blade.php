@@ -9,85 +9,91 @@
     {{-- Intro --}}
     <style>
         * {
-        box-sizing: border-box;
-        margin: 0;
+            box-sizing: border-box;
+            margin: 0;
         }
 
 
         .title_intro {
-        color: rgb(217, 6, 143);
-        opacity: 0;
-        font-size: 3rem;
-        animation: fadeIn 2s ease forwards;
+            color: rgb(217, 6, 143);
+            opacity: 0;
+            font-size: 3rem;
+            animation: fadeIn 2s ease forwards;
         }
 
         p {
-        font-size: 4rem;
-        opacity: 0;
-        animation: fadeInText 2s ease forwards 3s;
+            font-size: 4rem;
+            opacity: 0;
+            animation: fadeInText 2s ease forwards 3s;
         }
 
         .intro {
-        height: 100%;
-        background-color: rgba(182, 182, 182, 0.146);
-        display: flex;
-        justify-content: center;
-        align-items: center;
+            height: 100%;
+            background-color: rgba(182, 182, 182, 0.146);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            text-align: center;
         }
 
         main {
-        position: absolute;
-        top: 0;
-        height: 100%;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background-color: rgb(0, 0, 0);
-        transform: scale(0, 0);
-        animation: animate 1s ease-in forwards 2s;
-        overflow: hidden;
+            position: absolute;
+            top: 0;
+
+            /* CONTENIDO ADAPTABLE */
+            height: auto;
+
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgb(0, 0, 0);
+            transform: scale(0, 0);
+            animation: animate 1s ease-in forwards 2s;
+            overflow: hidden;
         }
 
         .content {
-        width: 100%;
-        text-align: center;
-        /* overflow-y: auto; */
+            width: 100%;
+            text-align: center;
+            height: 100%;
+            /* overflow-y: auto; */
         }
 
         @keyframes animate {
-        0% {
-            transform: scale(0, 0.005);
-        }
-        50% {
-            transform: scaleY(0.005);
-        }
-        100% {
-            transform: scale(1, 1);
-        }
+            0% {
+                transform: scale(0, 0.005);
+            }
+            50% {
+                transform: scaleY(0.005);
+            }
+            100% {
+                transform: scale(1, 1);
+            }
         }
 
         @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(50%);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(-50%);
-        }
+            from {
+                opacity: 0;
+                transform: translateY(50%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(-50%);
+            }
         }
 
         @keyframes fadeInText {
-        from {
-            opacity: 0;
-            transform: translateY(50%);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0%);
-        }
+            from {
+                opacity: 0;
+                transform: translateY(50%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0%);
+            }
         }
     </style>
 
@@ -110,9 +116,9 @@
             /* box-shadow: 0 15px 25px rgba(255, 255, 255, 0.1); */
 
             border-radius: 5px;
-            backdrop-filter: blur(1px);
+            /* backdrop-filter: blur(1px); */
 
-            color: white;
+            color: rgb(0, 0, 0);
             font-family: Times, "Times New Roman", Georgia, serif;
             font-size: x-small;
         }
@@ -261,11 +267,11 @@
 
     {{-- Grid --}}
     <style>
-        *{
+        /* *{
             box-sizing: border-box;
             margin: 0px;
             padding: 0px;
-        }
+        } */
 
         html{
             height: 100%;
@@ -274,30 +280,29 @@
         body{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 1.3rem;
-            min-height: 100%;
+            min-height: auto;
+
+
         }
 
         .grid-container > * { /* hereda a todo dentro de la clase*/
-            box-shadow: -1px 1px 7px 0px black;
+            /* box-shadow: -1px 1px 7px 0px black; */
             border-radius: 4px;
             padding: 10px;
             text-align: center;
         }
 
         .grid-container{ /* estilos de grilla segun los objetos */
-            height: 100%;
+            height: 1300px;
             display: grid;
             gap: 10px;
             grid-template:
-                "telmex-logo"
-                "aldea-logo"
-                "aprende-logo" 100px
+                "logo"  15%
 
-                "conferencia-frame"
-                "navbar"
+                "conferencia-frame" 20%
+                "navbar" 35%
 
-                "footer"
-                ;
+                "footer" 30%;
 
         }
 
@@ -305,47 +310,35 @@
         @media (min-width: 600px){
             .grid-container{
                 grid-template:
-                "aprende-logo      aldea-logo        telmex-logo" 100px
-                "conferencia-frame conferencia-frame navbar" 60%
-                "footer            footer            footer" 300px
+                "logo              logo              logo"   200px
+                "conferencia-frame conferencia-frame navbar" 500px
+                "footer            footer            footer" 600px
             }
         }
 
 
 
 
-        .telmex-logo{
-            grid-area: telmex-logo;
-            background-color: rgba(255, 255, 0, 0);
-
-            align-items: center;
+        .logo{
+            grid-area: logo;
+            background-color: rgba(255, 255, 255, 0);
         }
 
-        .telmex-logo img{
-            height: 40px;
-            margin-top: 15px;
+        .logo img{
+            transform: scale(0.9);
+            background-color: rgba(255, 255, 255, 0);
 
+            /* margin-right: 30px; */
         }
 
-        .aldea-logo{
-            grid-area: aldea-logo;
-            background-color: rgba(144, 238, 144, 0);
-        }
 
-        .aprende-logo{
-            grid-area: aprende-logo;
-            background-color: rgba(255, 0, 0, 0);
-        }
-
-        .aprende-logo img{
-            height: 50px;
-
-            border-radius: 10px;
-        }
 
         .conferencia-frame{
             grid-area: conferencia-frame;
             background-color: rgba(255, 192, 203, 0);
+
+            backdrop-filter: blur(1px);
+
         }
         .conferencia-frame iframe{
             border-radius: 10px;
@@ -354,17 +347,59 @@
         .navbar{
             grid-area: navbar;
             background-color: rgba(255, 181, 132, 0);
+
+            backdrop-filter: blur(1px);
         }
 
         .footer{
             grid-area: footer; /* contenido de la tabla/grilla */
-            background-color: rgba(0, 0, 0, 0.581);
+            background-color: rgba(0, 0, 0, 0);
             color: white;
+
+            backdrop-filter: blur(1px);
 
         }
 
         .footer iframe{
             border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .footer img {
+            height: auto;
+            max-width: 90%;
+            border-radius: 10px;
+        }
+
+    </style>
+
+    {{-- Titulos --}}
+    <style>
+        h4{
+            color: rgb(0, 0, 0);
+        }
+
+        a{
+            text-decoration: none;
+        }
+
+        .aldea-embed-title:hover{
+            color: #cc1b61;
+            transition: 0.3s ease-in-out;
+        }
+
+        .aldea-embed-title:not(:hover){
+            color: #000000;
+            transition: 0.3s ease-in-out;
+        }
+
+        .font-subtitle{
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .font-subtitle-site{
+            font-size: 3.5vw;
+            margin-bottom: 1%;
         }
 
     </style>
@@ -377,8 +412,8 @@
 
         <div class="intro">
             <div id="tsparticles"></div>
-            <h2 class="title_intro">
-                CONÓCENOS!
+            <h2 class="title_intro font-subtitle">
+                DESCUBRE MÁS SOBRE NOSOTROS!
             </h2>
         </div>
 
@@ -388,25 +423,20 @@
             <div class="content grid-container">
 
 
-                <section class="aprende-logo">
-                    <img src="{{ asset('img/aprende.png') }}" alt="">
+                <section class="logo">
+                    <a href="https://telmexeducacion.com/" >
+                        <img src="{{ asset('img/telemexeducacion-logo.svg') }}" alt="">
+                    </a>
                 </section>
-
-
-                <section class="aldea-logo">
-                    <img src="https://aldeadigitaliztapalapa.telmex.com/assets/img/LogoTelmedHubMobile.png" alt="">
-                </section>
-
-                <section class="telmex-logo">
-                    <img src="{{ asset('img/telmex.png') }}" alt="">
-                </section>
-
 
                 <section class="conferencia-frame">
+                    <h4 id="liveVideoTitle" class="font-subtitle">ULTIMA VIDEO CONFERENCIA</h4>
                     <iframe id="liveVideo" width="90%" height="90%" src="https://www.youtube.com/embed/A-V_73gaUg8?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                 </section>
 
                 <section class="navbar container-youtube">
+                    <h2 class="font-subtitle">TAMBIÉN TE PODRIA INTERESAR...</h2>
+
                     <div id="videosContainer"></div>
 
                     <div class="pagination">
@@ -420,10 +450,14 @@
                 </section>
 
                 <footer class="footer">
-                    <a href="https://aldeadigitaliztapalapa.telmex.com/">
-                        <iframe src="https://aldeadigitaliztapalapa.telmex.com/" width="90%" height="50%"></iframe>
+                    <a href="https://telmexeducacion.com/" >
+                        <h4 class="aldea-embed-title font-subtitle-site">¡VISITA NUESTRO SITIO WEB!</h4>
                     </a>
-                    </footer>
+
+                    <a href="https://telmexeducacion.com/">
+                        <img src="{{ asset('img/header-page.png') }}" alt="">
+                    </a>
+                </footer>
 
 
                 <!-- Modal -->
@@ -450,7 +484,7 @@
             },
             background: {
                 color: {
-                    value: '#ffff',
+                    value: '#000000',
                 },
             },
             fpsLimit:120,
@@ -514,7 +548,7 @@
                     type:'triangle',
                 },
                 size: {
-                    value: { min: 1, max: 5},
+                    value: { min: 3, max: 5},
                 },
             },
             detectRetina: true,
@@ -527,7 +561,7 @@
             },
             background: {
                 color: {
-                    value: '#000000',
+                    value: '#ffff',
                 },
             },
             fpsLimit:120,
@@ -555,17 +589,17 @@
             },
             particles: {
                 color: {
-                    value:'#0c2c68',
+                    value:'#00c7ff',
                 },
                 links:{
-                    color: '#cc3c6c',
+                    color: '#FF7DA3',
                     distance: 100,
                     enable: true,
                     opacity: 0.9,
                     width: 0.5
                 },
                 collisions: {
-                    enable:true,
+                    enable:false,
                 },
                 move:{
                     directions: 'none',
@@ -591,7 +625,7 @@
                     type:'triangle',
                 },
                 size: {
-                    value: { min: 1, max: 5},
+                    value: { min: 3, max: 5},
                 },
             },
             detectRetina: true,
@@ -606,10 +640,10 @@
     {{-- Youtube --}}
     <script>
         // API Key obtenida de Google Developers Console
-        // const API_KEY = 'AIzaSyBs8008RgdORx9YQuX1XJ0ETY4JM-Fas9M';
+        const API_KEY = 'AIzaSyBs8008RgdORx9YQuX1XJ0ETY4JM-Fas9M';
 
         // ID del canal de Biblioteca Digital Telmex
-        // const channelID = 'UCrP4JrjqIP59P5NGi2KLL1Q';
+        const channelID = 'UCrP4JrjqIP59P5NGi2KLL1Q';
 
         // Parámetros de la API de YouTube
         let nextPageToken = '';
@@ -624,6 +658,11 @@
         const modalContent = document.getElementById('modal-content');
         const videoIframe = document.getElementById('videoIframe');
         const closeModal = document.getElementsByClassName('close')[0];
+
+        // Elemento de ultima videoconferencia
+        const lastvideoIframe = document.getElementById('liveVideo');
+        const lastvideoTitle = document.getElementById('liveVideoTitle');
+
 
         // Función para obtener los videos del canal
         async function fetchVideos(pageToken = '') {
@@ -643,6 +682,17 @@
 
                 // Limpiar el contenedor antes de agregar nuevos videos
                 videosContainer.innerHTML = '';
+
+
+                // Videos de live streaming
+                for (let i = 0; i < data.items.length; i++) {
+                    if(data.items[i].id.kind === 'youtube#video'){
+                        lastvideoIframe.src= `https://www.youtube.com/embed/${data.items[i].id.videoId}`;
+                        // lastvideoTitle.innerHTML= `${data.items[i].snippet.title}`;
+                        break;
+                    }
+                }
+
 
                 // Recorre los videos y crea una miniatura para cada uno
                 data.items.forEach(item => {

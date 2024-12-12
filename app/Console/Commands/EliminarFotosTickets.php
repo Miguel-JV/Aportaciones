@@ -48,7 +48,7 @@ class EliminarFotosTickets extends Command
         // $dateEnd = Carbon::now()->startOfMonth();
         $dateEnd = Carbon::now();
 
-        $tickets = tickets::whereBetween('created_at', [$dateStart,$dateEnd])->get();
+        $tickets = tickets::whereBetween('FECHA_INICIO', [$dateStart,$dateEnd])->get();
 
         foreach ($tickets as $ticket ) {
             self::eliminarFotoTicket($ticket['FOTO_2']);
@@ -57,7 +57,9 @@ class EliminarFotosTickets extends Command
     }
 // CONTROL DE REGISTROS ANUALES
     public function eliminarFotoTicket($nombre_foto){
-        // $nombre_foto = '1728068080_1.jpg';
-        \Storage::disk('tickets_evidencias')->delete($nombre_foto);
+        if ($nombre_foto != null) {
+            // $nombre_foto = '1728068080_1.jpg';
+            \Storage::disk('tickets_evidencias_inicio')->delete($nombre_foto);
+        }
     }
 }

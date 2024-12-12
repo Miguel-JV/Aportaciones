@@ -65,14 +65,27 @@
             <div class="form-row">
                 <div class="form-group col-md-4">
                     <label for="casa">Casa</label>
-                    <select id="casa" onchange="cargarDependenciasCasas(this)" name="casa" class="form-control" required>
-                        <option value="">Seleccione una casa...</option>
 
-                        @foreach ($casas as $casa)
-                            <option data-nombre="{{ substr($casa->NOMBRE,0,2) }}" value="{{ $casa->ID_CASA }}">{{ $casa->NOMBRE }}</option>
-                        @endforeach
+                        @if (Auth::user()->rol == 'coordinador')
+                            <select id="casa" onchange="cargarDependenciasCasas(this)" name="casa" class="form-control" required>
+                                <option value="">Seleccione una casa...</option>
 
-                    </select>
+                                @foreach ($casas as $casa)
+                                    <option data-nombre="{{ substr($casa->NOMBRE,0,2) }}" value="{{ $casa->ID_CASA }}">
+                                        {{ $casa->NOMBRE }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+                        @elseif (Auth::user()->rol == 'director')
+                            <input type="hidden" name="casa" value="{{ $casaDirector->ID_CASA }}"/>
+                            <select id="casa" onchange="cargarDependenciasCasas(this)" name="casa" class="form-control" required disabled="true">
+                                <option data-nombre="{{ substr($casaDirector->NOMBRE,0,2) }}" value="{{ $casaDirector->ID_CASA }}" selected>
+                                    {{ $casaDirector->NOMBRE }}
+                                </option>
+                            </select>
+
+                        @endif
                 </div>
 
                 <div class="form-group col-md-4">
@@ -166,7 +179,7 @@
                     <label id="lbl_foto_obligatoria" for="foto_obligatoria" class="btn btn-info" onmouseover="asignarNombre(this)">Adjuntar Evidencia</label>
 
                     <br>
-                    <label for="foto_obligatoria" class="file-note">Imagenes .jpg, .jpeg, .png, no mayores a 300KB </label>
+                    <label for="foto_obligatoria" class="file-note">Imagenes .jpg, .jpeg, .png, no mayores a 5MB </label>
                 </div>
 
                 <div class="form-group col-md-4">
@@ -213,6 +226,15 @@
 
 @section('js')
 <script>
+    function cargar() {
+        let casa = document.getElementById('casa');
+        cargarDependenciasCasas(casa);
+    }
+
+    window.onload = cargar;
+</script>
+
+<script>
 //RUTAS
     //let strroute = '/Aportaciones/tickets/creacion/'
     let strroute = '/tickets/creacion/'
@@ -226,8 +248,8 @@
 
     function cambiarContenido(inputArchivo) {
         // Tamaño maximo del archivo
-        //let maxSize = 3000000; //3mb -> 3,000,000
-        let maxSize = 300000;//300kb
+        let maxSize = 5000000; //5mb -> 5,000,000
+        //let maxSize = 300000;//300kb
 
         // Validamos el primer archivo únicamente
         let archivo = inputArchivo.files[0];
@@ -247,7 +269,7 @@
         }else{
             inputArchivo.value = "";
             labelArchivo.className = 'btn btn-outline-danger'
-            labelArchivo.innerHTML = "Adjuntar jpg,jpeg,png - 300Kb máximo";
+            labelArchivo.innerHTML = "Adjuntar jpg,jpeg,png - 5Mb máximo";
 
         }
     }

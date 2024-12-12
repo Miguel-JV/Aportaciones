@@ -232,29 +232,35 @@
                 </tbody>
             </table><br>
 
-            <h1>Evidencias</h1>
-            <table border="1" cellspacing="0" cellpadding="10" style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr>
-                        <th style="background-color: #7b1fa2; color: #ffffff; text-align: center;">Foto Evidencia Obligatotia</th>
-                        <th style="background-color: #7b1fa2; color: #ffffff; text-align: center;">Foto Evidencia Extra</th>
-                        <th style="background-color: #7b1fa2; color: #ffffff; text-align: center;">Foto Evidencia Extra</th>
+            @if (!empty($data['fotos']))
+                <h1>Evidencias</h1>
+                <table border="1" cellspacing="0" cellpadding="10" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="background-color: #7b1fa2; color: #ffffff; text-align: center;">Foto Evidencia Obligatotia</th>
+                            <th style="background-color: #7b1fa2; color: #ffffff; text-align: center;">Foto Evidencia Extra</th>
+                            <th style="background-color: #7b1fa2; color: #ffffff; text-align: center;">Foto Evidencia Extra</th>
 
-                    </tr>
-                </thead>
+                        </tr>
+                    </thead>
 
-                <tbody>
-                    <tr>
-                        @foreach ($data['fotos'] as $foto)
+                    <tbody>
+                        <tr>
+                            @foreach ($data['fotos'] as $foto)
 
-                            <td style="text-align: center;" class="evidencia">
-                                <img src="{{ $message->embed(public_path() . "/storage/tickets/evidencias/" . $foto )}}" alt="Imagen No Encontrada" class="img-fluid img-thumbnail">
-                            </td>
+                                <td style="text-align: center;" class="evidencia">
+                                    <img src="{{ $message->embed(public_path() . "/storage/tickets/evidencias/inicio/" . $foto )}}" alt="Imagen No Encontrada" class="img-fluid img-thumbnail">
+                                </td>
 
-                        @endforeach
-                    </tr>
-                </tbody>
-            </table><br>
+                            @endforeach
+                        </tr>
+                    </tbody>
+                </table><br>
+            @else
+
+            @endif
+
+            
 
             @if ($data['coordinador_bdt'])
                 <a href="{{ route('autorizar.ticket', [

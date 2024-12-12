@@ -29,6 +29,7 @@ class CreateDirectoresTable extends Migration
                 ->onDelete('cascade');
 
         });
+
     }
 
     /**

@@ -13,7 +13,7 @@ class CoordinadoresCasasTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('coordinadores_casas')->insert(['ID_COORDINADORES_CASAS' => 1,  'ID_COORDINADOR' => 1, 'ID_CASA' => 1]);
+        // DB::table('coordinadores_casas')->insert(['ID_COORDINADORES_CASAS' => 1,  'ID_COORDINADOR' => 1, 'ID_CASA' => 1]);
 
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/coordinadores_casas.csv"), "r");

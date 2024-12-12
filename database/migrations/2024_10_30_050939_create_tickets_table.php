@@ -65,7 +65,9 @@ class CreateTicketsTable extends Migration
             $table->string('AREA_ATENCION', 100)->nullable();
             $table->string('PERSONA_ATENCION', 100)->nullable();
             $table->string('OBSERVACIONES', 100)->nullable();
-            $table->string('EVIDENCIA', 200)->nullable();
+            $table->string('EVIDENCIA_TERMINO', 100)->nullable();
+            $table->string('EVIDENCIA_TERMINO_2', 100)->nullable();
+            $table->string('EVIDENCIA_TERMINO_3', 100)->nullable();
 
 
             $table->timestamps();

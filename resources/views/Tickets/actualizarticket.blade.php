@@ -81,7 +81,7 @@
                 <h2>Actualizar Ticket</h2>
             </div>
 
-            <form action=" {{ route('update.ticket', $ticket) }}" method="POST">
+            <form action=" {{ route('update.ticket', $ticket) }}" method="POST" enctype="multipart/form-data" onsubmit="showLoading()">
 
                 {{-- Redireccionar a rutas de actualizacion  --}}
                 @csrf
@@ -138,6 +138,32 @@
                 </div>
 
                 <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label for="foto_obligatoria">Foto Evidencia Obligatoria</label>
+
+                        <input id="foto_obligatoria" name="foto_obligatoria" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".jpg, .jpeg, .png"   required /> <br>
+                        <label id="lbl_foto_obligatoria" for="foto_obligatoria" class="btn btn-info" onmouseover="asignarNombre(this)">Adjuntar Evidencia</label>
+
+                        <br>
+                        <label for="foto_obligatoria" class="file-note">Imagenes .jpg, .jpeg, .png, no mayores a 5MB </label>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label for="daño">Foto Evidencia Opcional</label>
+
+                        <input id="foto_opcional_2" name="foto_opcional_2" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".jpg, .jpeg, .png" > <br>
+                        <label for="foto_opcional_2" class="btn btn-outline-info" onmouseover="asignarNombre(this)">Adjuntar Evidencia</label>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label for="daño">Foto Evidencia Opcional</label>
+
+                        <input id="foto_opcional_3" name="foto_opcional_3" type="file" style="display: none" onchange="cambiarContenido(this)" accept=".jpg, .jpeg, .png" > <br>
+                        <label for="foto_opcional_3" class="btn btn-outline-info" onmouseover="asignarNombre(this)">Adjuntar Evidencia</label>
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group col-md-6" style="align-items: center;">
                         <label id="detalle" name="detalle" class="btn btn-outline-info btn-custom" data-toggle="modal" data-target="#modal">
                             Detalle
@@ -145,7 +171,7 @@
                     </div>
 
                     <div class="form-group col-md-6">
-                        <button type="submit" class="btn btn-primary btn-custom">Guardar</button>
+                        <button type="submit" class="btn btn-primary btn-custom" onclick="cambiarBG();">Guardar</button>
                     </div>
 
                 </div>
@@ -229,7 +255,7 @@
 
                                 <label for="foto_evidencia_1">Foto Evidencia</label><br>
                                 <div class="img-zoom-container">
-                                    <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_OBLIGATORIA) }}" alt="Foto No Registrada" >
+                                    <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute .'inicio/'. $ticket->FOTO_OBLIGATORIA) }}" alt="Foto No Registrada" >
                                 </div>
                             </div>
 
@@ -237,7 +263,7 @@
 
                                 <label for="foto_evidencia_1">Foto Evidencia</label><br>
                                 <div class="img-zoom-container">
-                                    <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_2)}}" alt="Foto No Registrada"  >
+                                    <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute .'inicio/'. $ticket->FOTO_2)}}" alt="Foto No Registrada"  >
                                     <div id="myresult" class="img-zoom-result"></div>
 
                                 </div>
@@ -247,7 +273,7 @@
 
                                 <label for="foto_evidencia_1">Foto Evidencia</label><br>
                                 <div class="img-zoom-container">
-                                    <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_3)}}" alt="Foto No Registrada"  >
+                                    <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute .'inicio/'. $ticket->FOTO_3)}}" alt="Foto No Registrada"  >
                                 </div>
                             </div>
 
@@ -258,7 +284,10 @@
                 </div>
             </div>
         </div>
-    @elseif ($ticket->ESTATUS_AUTORIZACION == 'NO'|| $ticket->ESTATUS_AUTORIZACION == 'ANULADO')
+
+
+
+    @elseif ($ticket->ESTATUS_AUTORIZACION == 'NO')
         <div class="container form-container">
             <div class="form-header">
                 <h2>Actualizar Ticket</h2>
@@ -284,6 +313,50 @@
 
 
 @section('js')
+    {{-- EVIDENCIAS DE TERMINO --}}
+    <script>
+        function asignarNombre(lbl) {
+            labelArchivo = lbl;
+        }
+
+
+        function cambiarContenido(inputArchivo) {
+            // Tamaño maximo del archivo
+            let maxSize = 5000000; //5mb -> 5,000,000
+            //let maxSize = 300000;//300kb
+
+            // Validamos el primer archivo únicamente
+            let archivo = inputArchivo.files[0];
+            let nombreArchivo = inputArchivo.value;
+            let idExtencion = nombreArchivo.lastIndexOf(".") + 1;
+            let extArchivo = nombreArchivo.substr(idExtencion, nombreArchivo.length).toLowerCase();
+
+            if (extArchivo=="jpg" && archivo.size <= maxSize|| extArchivo=="jpeg" && archivo.size <= maxSize|| extArchivo=="png" && archivo.size <= maxSize){
+
+                let nombreArchivo = inputArchivo.files[0].name;
+                if (inputArchivo.value != "") {
+                    labelArchivo.innerHTML = nombreArchivo;
+                    labelArchivo.className = 'btn btn-success'
+
+                }
+
+            }else{
+                inputArchivo.value = "";
+                labelArchivo.className = 'btn btn-outline-danger'
+                labelArchivo.innerHTML = "Adjuntar jpg,jpeg,png - 5Mb máximo";
+
+            }
+        }
+
+        function cambiarBG(){
+        let inputFotoObligatoria = document.getElementById('foto_obligatoria');
+        let lblFotoObligatoria = document.getElementById('lbl_foto_obligatoria');
+        if (inputFotoObligatoria.value == ""){
+            lblFotoObligatoria.className = 'btn btn-warning';
+        }
+    }
+    </script>
+
 
     {{-- ZOOM IMG --}}
     <script>

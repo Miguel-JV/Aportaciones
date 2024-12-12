@@ -15,7 +15,7 @@ class EspaciosTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('espacios')->insert(['ID_ESPACIO' => 1,  'ID_SITIO' => 34, 'NOMBRE' => 'Puerta de Acceso']);
+        // DB::table('espacios')->insert(['ID_ESPACIO' => 1,  'ID_SITIO' => 34, 'NOMBRE' => 'Puerta de Acceso']);
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/espacios.csv"), "r");
         $firstline = true;

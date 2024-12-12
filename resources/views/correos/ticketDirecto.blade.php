@@ -223,7 +223,7 @@
                         @foreach ($data['fotos'] as $foto)
 
                             <td style="text-align: center;" class="evidencia">
-                                <img src="{{ $message->embed(public_path() . "/storage/tickets/evidencias/" . $foto )}}" alt="Imagen No Encontrada" class="img-fluid img-thumbnail">
+                                <img src="{{ $message->embed(public_path() . "/storage/tickets/evidencias/inicio/" . $foto )}}" alt="Imagen No Encontrada" class="img-fluid img-thumbnail">
                             </td>
 
                         @endforeach

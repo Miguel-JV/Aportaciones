@@ -14,7 +14,7 @@ class AfeccionesTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('afecciones')->insert(['ID_AFECCION' => 1,  'ID_AREA' => 6, 'NOMBRE' => 'Alarma']);
+        // DB::table('afecciones')->insert(['ID_AFECCION' => 1,  'ID_AREA' => 6, 'NOMBRE' => 'Alarma']);
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/afecciones.csv"), "r");
         $firstline = true;

@@ -16,7 +16,7 @@ class EncargadosCasasTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('encargados_casas')->insert(['ID_ENCARGADOS_CASAS' => 1,  'ID_ENCARGADO' => 1, 'ID_CASA' => 1]);
+        // DB::table('encargados_casas')->insert(['ID_ENCARGADOS_CASAS' => 1,  'ID_ENCARGADO' => 1, 'ID_CASA' => 1]);
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/encargados_casas.csv"), "r");
         $firstline = true;
@@ -26,7 +26,7 @@ class EncargadosCasasTableSeeder extends Seeder
                 encargados_casas::create([
 
                     "ID_ENCARGADOS_CASAS" => $data['0'],
-                    
+
                     "ID_ENCARGADO" => $data['1'],
                     "ID_CASA" => $data['2'],
                 ]);

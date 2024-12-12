@@ -14,7 +14,7 @@ class DrivesTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('drives')->insert(['ID_DRIVE' => 1,  'ID_CASA' => 1, 'LIGA' => 'https://drive.google.com/drive/folders/1ooG_cYUvjzEfAVSkKlqK3MoDcZJM_eWL']);
+        // DB::table('drives')->insert(['ID_DRIVE' => 1,  'ID_CASA' => 1, 'LIGA' => 'https://drive.google.com/drive/folders/1ooG_cYUvjzEfAVSkKlqK3MoDcZJM_eWL']);
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/drives.csv"), "r");
         $firstline = true;

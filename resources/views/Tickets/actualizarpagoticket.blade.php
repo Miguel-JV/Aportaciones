@@ -123,7 +123,7 @@
 
                 {{-- Redireccionar a rutas de actualizacion  --}}
                 @csrf
-                {{-- @method('PATCH') --}}
+                @method('PATCH')
 
                 <div class="form-row justify-content-center">
 
@@ -162,7 +162,7 @@
                         <label id="lbl_archivo_pago" for="archivo_pago" class="btn btn-outline-warning" onmouseover="asignarNombre(this)">Adjuntar Documento Evidencia de Pago</label>
 
                         {{-- <br> --}}
-                        <label for="archivo_pago" class="file-note">Formato libre</label>
+                        <label for="archivo_pago" class="file-note">Formato opcional libre</label>
                     </div>
                 </div>
 
@@ -259,7 +259,7 @@
 
                                 <label for="foto_evidencia_1">Foto Evidencia</label><br>
                                 <div class="img-zoom-container">
-                                    <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_OBLIGATORIA) }}" alt="Foto No Registrada" >
+                                    <img id="myimage_1" data-id="myimage_1" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute .'termino/'. $ticket->EVIDENCIA_TERMINO) }}" alt="Foto No Registrada" >
                                 </div>
                             </div>
 
@@ -267,7 +267,7 @@
 
                                 <label for="foto_evidencia_1">Foto Evidencia</label><br>
                                 <div class="img-zoom-container">
-                                    <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_2)}}" alt="Foto No Registrada"  >
+                                    <img id="myimage_2" data-id="myimage_2" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute .'termino/'. $ticket->EVIDENCIA_TERMINO_2)}}" alt="Foto No Registrada"  >
                                     <div id="myresult" class="img-zoom-result"></div>
 
                                 </div>
@@ -277,30 +277,12 @@
 
                                 <label for="foto_evidencia_1">Foto Evidencia</label><br>
                                 <div class="img-zoom-container">
-                                    <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute . $ticket->FOTO_3)}}" alt="Foto No Registrada"  >
+                                    <img id="myimage_3" data-id="myimag_3" class="item-img img-fluid img-thumbnail" src="{{ asset($strroute .'termino/'. $ticket->EVIDENCIA_TERMINO_3)}}" alt="Foto No Registrada"  >
                                 </div>
                             </div>
 
                         </div>
 
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    @elseif ($ticket->ESTATUS_AUTORIZACION == 'NO')
-        <div class="container form-container">
-            <div class="form-header">
-                <h2>Actualizar Ticket</h2>
-                <h3>Ticket NO Finalizado</h3>
-
-                <div class="form-row justify-content-center" >
-                    <div class="form-group col-md-4">
-                        <a href="{{ redirect()->getUrlGenerator()->previous() }}">
-                            <label class="btn btn-outline-danger btn-custom">
-                                Actualizacion no Disponible
-                            </label>
-                        </a>
                     </div>
 
                 </div>

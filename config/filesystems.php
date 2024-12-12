@@ -62,9 +62,16 @@ return [
             'visibility' => 'public',
         ],
 
-        'tickets_evidencias' => [
+        'tickets_evidencias_inicio' => [
             'driver' => 'local',
-            'root' => storage_path('app/public/tickets/evidencias'),
+            'root' => storage_path('app/public/tickets/evidencias/inicio'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
+        ],
+
+        'tickets_evidencias_termino' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/tickets/evidencias/termino'),
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
         ],

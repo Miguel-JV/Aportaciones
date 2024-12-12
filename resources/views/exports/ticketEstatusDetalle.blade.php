@@ -138,7 +138,7 @@
                 <b>COTIZACION</b>
             </th>
             <th  width="20" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
-                <b>FECHA<br>COMPROMISO</b>
+                <b>FECHA<br>FIN</b>
             </th>
             <th  width="40" style=" border-bottom: solid; background-color: #FFFFFF;" valign='middle' align='center' bgcolor='#FFFFFF'>
                 <b>DETALLE</b>
@@ -163,7 +163,7 @@
                     ${{ $ticket->COTIZACION }}
                 </td>
                 <td colspan="1"  style=" border-top: solid; border-bottom: solid; color: #000000; background-color: #ffffff;" valign='middle' align='center' bgcolor='#FFFFFF'>
-                    {{ $ticket->FECHA_COMPROMISO }}
+                    {{ $ticket->FECHA_FIN }}
                 </td>
                 <td  height="55" colspan="1"  style=" border-top: solid; border-bottom: solid; color: #000000 ; background-color: #ffffff;" valign='middle'  bgcolor='#FFFFFF'>
                     {{ $ticket->DETALLE }}<br>

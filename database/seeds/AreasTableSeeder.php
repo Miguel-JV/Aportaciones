@@ -13,7 +13,7 @@ class AreasTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('areas')->insert(['ID_AREA' => 1,  'NOMBRE' => 'Alcaldía']);
+        // DB::table('areas')->insert(['ID_AREA' => 1,  'NOMBRE' => 'Alcaldía']);
 
         $csvFile = fopen(storage_path("app/archivos/registrosTickets/areas.csv"), "r");
         $firstline = true;

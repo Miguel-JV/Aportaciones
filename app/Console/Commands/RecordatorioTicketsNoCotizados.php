@@ -28,8 +28,11 @@ use App\encargados_casas;
 use App\modificaciones;
 
 
-// Namespace para fechas
-use Carbon\Carbon;
+// Notificaciones
+use Illuminate\Support\Facades\Mail;
+use App\Mail\RecordatorioTicketNoCotizado;
+use App\Http\Controllers\TelegramController;
+
 
 
 class RecordatorioTicketsNoCotizados extends Command
@@ -66,9 +69,17 @@ class RecordatorioTicketsNoCotizados extends Command
     public function handle()
     {
         $coordinadores = coordinadores::all();
-        $data_whats = [
-            'contenido' => [],
-            'ruta' => route('consultar.ticket'),
+        $lista = '';
+        $data_telegram =[
+            'lista' => '',
+            'total' => '',
+        ];
+        $data_correo = [
+            'casa' => '',
+            'area' => '',
+            'lista' => '',
+
+            'destinatario' => '',
         ];
 
         $currentYear = date('Y');
@@ -85,99 +96,126 @@ class RecordatorioTicketsNoCotizados extends Command
             ['ESTATUS_AUTORIZACION','<>','ANULADO'],
 
             ['ESTATUS_COTIZACION','NO'],
+            ['FECHA_COMPROMISO',NULL],
 
             ])->orderBy('FECHA_INICIO', 'ASC')->get();
-        // $tickets = tickets::whereYear('FECHA_INICIO', $currentYear)->where([
-        //     ['ESTATUS_COTIZACION','NO'],
 
-        //     ])->orderBy('FECHA_INICIO', 'ASC')->get();
 
-        $data_whats['contenido'] = $tickets;
-
-        foreach ($coordinadores as $destinatario) {
-
-            $data_whats['clave'] = $destinatario->NOMBRE;
-            self::notificarGeneracionReportes($destinatario->TELEFONO, $data_whats);
+        foreach ($tickets as $ticket) {
+            $lista .= '-- ' . $ticket->FOLIO.' - '.$ticket->CASA.' - '.$ticket->AREA_RESPONSABLE.
+            '%0A';
         }
+
+        $data_telegram['lista'] = $lista;
+        $data_telegram['total'] = $tickets->count();
+
+
+    // Notificar Telegram
+        foreach ($coordinadores as $destinatario) {
+            self::notificarGeneracionReportes($destinatario->TELEGRAM, $data_telegram);
+        }
+
+    // Notificar Correo
+        foreach ($tickets as $ticket) {
+
+            $data_correo = [
+                'casa'      => $ticket->CASA,
+                'area'      => $ticket->CASA,
+
+                'folio'     => $ticket->FOLIO,
+
+                'fecha'     => $ticket->FECHA_INICIO,
+                'prioridad' => $ticket->PRIORIDAD,
+                'daño'      => $ticket->DAÑO,
+                'afeccion'  => $ticket->AFECCION,
+
+                'ticket'    => $ticket,
+            ];
+            $nivel = $ticket->NIVEL;
+            $area  = areas::where('NOMBRE', $ticket->AREA_RESPONSABLE)->first();
+
+            self::envioPrioritarioRecordatorio($nivel,$area, $data_correo);
+        }
+
+
     }
 
     // NOTIFICACIONES
-    //WhatsApp
-    public function enviar($payload){
-        $id_telefono = '373083419225618';
-        $token = 'EABvGrmq3yZCoBO070vYK6Vmd9vqKN07zc57HKFE5wZBkI2WzCcAzdUhrIKnDTdvUKkECZAIMCOHmsjFykcepQnptmcVZCTKWiGuZB1HH2t1ZCtIgwRUoZBzImOTTvgTrZBguDBgCZAbrLigqZAH4KLZAWDG5sX7IVFweg77D2rsnXuRC0kIWhUS6DD7hFqWWZBJ4Wpz3igZDZD';
+    //Telegram
+    public function notificarGeneracionReportes($chat_id, $data_telegram){
+        $telegram = new TelegramController();
 
-        // Envio del mensaje via Curl
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://graph.facebook.com/v20.0/'. $id_telefono . '/messages',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>$payload,
+        $payload = "<b>TICKETS NO COTIZADOS</b>%0A".
+        "%0A<blockquote expandable><b><i>Cantidad: ".$data_telegram['total']."</i></b> %0A".$data_telegram['lista']."</blockquote>";
 
-            CURLOPT_HTTPHEADER => array(
-                    'Content-Type: application/json',
-                    'Authorization: Bearer ' . $token
-                ),
-            ));
-
-        $response = curl_exec($curl);
-
-        curl_close($curl);
+        $telegram->sendText($chat_id, $payload);
     }
+    // Correo
+    public function envioPrioritarioRecordatorio($nivel, $area, $data){
 
-    public function notificarGeneracionReportes($destinatario_tel, $data_whats){
+        // Enviar correo a encargados
+        // $area    = $ticket->afeccion->area_afeccion;
+        $data['area'] = $area->NOMBRE;
 
-        $lista = '';
-        foreach ($data_whats['contenido'] as $ticket) {
-            $lista .= '* ' . $ticket->FOLIO . '%0A';
+        $supervisor = $data['ticket']->casa->supervisor_casa->where('ID_AREA', $area->ID_AREA)->first();
+        $subgerente = $data['ticket']->casa->subgerente_casa->where('ID_AREA', $area->ID_AREA)->first();
+        $gerente    = $data['ticket']->casa->gerente_casa->where('ID_AREA', $area->ID_AREA)->first();
+
+        switch ($nivel) {
+            case 'GERENCIA':
+                // NOTIFICAR GERENTE SI EXISTE
+                if ($gerente) {
+                    $data['destinatario']  = $gerente->NOMBRE;
+                    $destinatario = $gerente->CORREO;
+
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
+
+                // NOTIFICAR SUBGERENTE SI EXISTE
+                if ($subgerente) {
+                    $data['destinatario'] = $subgerente->NOMBRE;
+                    $destinatario = $subgerente->CORREO;
+
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
+
+                // NOTIFICAR SUPERVISOR SI EXISTE
+                if ($supervisor) {
+                    $data['destinatario'] = $supervisor->NOMBRE;
+                    $destinatario = $supervisor->CORREO;
+
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
+            break;
+
+            case 'SUBGERENCIA':
+                // NOTIFICAR SUBGERENTE SI EXISTE
+                if ($subgerente) {
+                    $data['destinatario'] = $subgerente->NOMBRE;
+                    $destinatario = $subgerente->CORREO;
+
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
+
+                // NOTIFICAR SUPERVISOR SI EXISTE
+                if ($supervisor) {
+                    $data['destinatario'] = $supervisor->NOMBRE;
+                    $destinatario = $supervisor->CORREO;
+
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
+            break;
+
+            case 'SUPERVISION':
+                // NOTIFICAR SUPERVISOR SI EXISTE
+                if ($supervisor) {
+                    $data['destinatario'] = $supervisor->NOMBRE;
+                    $destinatario = $supervisor->CORREO;
+
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
+            break;
         }
-
-        $payload = [
-            "messaging_product" => 'whatsapp',
-            "recipient_type" => 'individual',
-            "to" => $destinatario_tel,
-            "type" => 'interactive',
-            "interactive" => [
-                "type" => 'cta_url',
-
-                "header" => [
-                    "type" => 'text',
-                    "text" => 'Tickets No Cotizados'
-                ],
-
-                "body" => [
-                    "text" => $lista
-                ],
-
-                "footer" => [
-                    "text" => $data_whats['clave']
-                ],
-
-                "action" => [
-                    "name" => 'cta_url',
-                    "parameters" => [
-                        "display_text" => 'Revisar',
-                        "url" => $data_whats['ruta'],
-                    ],
-                ]
-            ]
-
-        ];
-
-        // ajustar al formato de envio
-        $payload = json_encode($payload);
-
-        // permitir saltos de linea
-        $payload = str_replace('%0A','\n', $payload);
-
-        // Envio del mensaje via Curl
-        self::enviar($payload);
-
     }
+
 }

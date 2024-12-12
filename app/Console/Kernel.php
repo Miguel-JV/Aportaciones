@@ -38,20 +38,18 @@ class Kernel extends ConsoleKernel
 
 // TICKETS
         // $schedule->command('eliminarfotos:tickets')
-        //             ->cron('* * 01 */3 *');
+        //                     ->everyMinute();
+        //                     ->cron('* * 01 */3 *');
 
-
-        // $schedule->command('eliminarfotos:tickets')
-        //                 ->everyMinute();
 
 
         // $schedule->command('ResumenTickets:ReportesXls')
         //                     ->everyMinute();
-                        // ->monthly();
+        //                     ->monthly();
 
-        $schedule->command('ResumenTickets:NoCotizados')
-                            ->everyMinute();
-        //                 ->daily();
+        // $schedule->command('ResumenTickets:NoCotizados')
+        //                     ->everyMinute();
+        //                     ->daily();
     }
 
     /**

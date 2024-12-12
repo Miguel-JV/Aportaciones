@@ -24,7 +24,7 @@
             font-family: cursive;
             font-size: 14px;
         }
-        
+
         .form-container {
             max-width: 900px;
             /* margin: 50px auto; */
@@ -103,6 +103,57 @@
         <div id="loading-content"></div>
     </section>
 
+    {{-- BARRA DE NAVEGACIÓN --}}
+    @auth
+        <ul class="nav nav-tabs justify-content-center">
+
+            <li class="nav-item">
+                <a class="nav-link {{ Route::is('consultar.ticket') ? 'active' : '' }}" href="{{ route('consultar.ticket') }}"> <i class="fa-solid fa-house"></i> Panel </a>
+            </li>
+
+            @if (Auth::user()->rol == 'director')
+                <li class="nav-item">
+                    <a class="nav-link {{ Route::is('consultar.ticket.pasado') ? 'active' : '' }}" href="{{ route('consultar.ticket.pasado') }}"> <i class="fa-solid fa-arrow-up-from-bracket"></i> Evidencias </a>
+                </li>
+            @endif
+
+            @if (Auth::user()->rol == 'coordinador')
+                <li class="nav-item">
+                    <a class="nav-link {{ Route::is('reporte.ticket') ? 'active' : '' }}" href="{{ route('reporte.ticket') }}"> <i class="fa-regular fa-file-excel"></i> Reportes</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {{ Route::is('modificar.personal') ? 'active' : '' }}" href="{{ route('modificar.personal') }}"> <i class="fa-solid fa-users"></i></i> Personal</a>
+                </li>
+            @endif
+
+            @if (Auth::user()->rol == 'coordinador' && Auth::user()->userable->VALIDACION)
+                <li class="nav-item">
+                    <a class="nav-link {{ Route::is('consultar.ticket.pago') ? 'active' : '' }}" href="{{ route('consultar.ticket.pago') }}"> <i class="fa-regular fa-money-bill-1"></i> Pagos</a>
+                </li>
+            @endif
+
+
+            {{-- USUARIO --}}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+                    {{ Auth::user()->userable->NOMBRE }} <span class="caret"></span>
+                </a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault();
+                        document.getElementById('logout-form').submit();">
+                        Cerrar Sesión
+                    </a>
+                </div>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+            </li>
+
+        </ul>
+    @endauth
+    
+
     @yield('contenido')
 
 
@@ -127,6 +178,7 @@
             document.querySelector('#loading').classList.remove('loading');
             document.querySelector('#loading-content').classList.remove('loading-content');
         }
+
     </script>
 
     @yield('js')

@@ -35,4 +35,13 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
+    // Adiciones
+    // 'telegram-bot-api' => [
+    //     'token' => env('TELEGRAM_BOT_TOKEN', '7251630970:AAFvn3K2be2mFh-bi_i-o5PAUk1E1rgZA28')
+    // ],
+    'telegram-bot-token' => env('TELEGRAM_BOT_TOKEN',"7251630970:AAFvn3K2be2mFh-bi_i-o5PAUk1E1rgZA28"),
+
+    // Adiciones
+
+
 ];

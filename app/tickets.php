@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class tickets extends Model
 {
-    // SEDENA
-    // SEMAR
+
     protected $fillable = [
         'ID_TICKET',
         'ID_CASA',
@@ -61,7 +60,11 @@ class tickets extends Model
         'AREA_ATENCION',
         'PERSONA_ATENCION',
         'OBSERVACIONES',
-        'EVIDENCIA'
+
+
+        'EVIDENCIA_TERMINO',
+        'EVIDENCIA_TERMINO_2',
+        'EVIDENCIA_TERMINO_3',
     ];
     protected $primaryKey = 'ID_TICKET';
 

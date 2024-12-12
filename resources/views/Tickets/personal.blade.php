@@ -48,27 +48,6 @@
 @endsection
 
 @section('contenido')
-    {{-- BARRA DE NAVEGACION --}}
-    <ul class="nav nav-tabs justify-content-center">
-
-        <li class="nav-item">
-            <a class="nav-link " href="{{ route('consultar.ticket') }}"> <i class="fa-solid fa-house"></i> Panel </a>
-        </li>
-
-
-        <li class="nav-item">
-            <a class="nav-link " href="{{ route('reporte.ticket') }}"> <i class="fa-regular fa-file-excel"></i> Reportes</a>
-        </li>
-
-
-        <li class="nav-item">
-            <a class="nav-link active" href="{{ route('modificar.personal') }}"> <i class="fa-solid fa-users"></i></i> Personal</a>
-        </li>
-
-        <li class="nav-item">
-                <a class="nav-link" href="{{ route('consultar.ticket.finalizado') }}"> <i class="fa-regular fa-money-bill-1"></i> Finalizados</a>
-            </li>
-    </ul>
 
 
     <main class="container">

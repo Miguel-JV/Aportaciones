@@ -16,7 +16,10 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'id',
+        'folio', 'password', 'rol',
+
+        'userable_id', 'userable_type'
     ];
 
     /**
@@ -27,4 +30,10 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+    public $timestamps = false;
+
+
+    public function userable(){
+        return $this->morphTo();
+    }
 }

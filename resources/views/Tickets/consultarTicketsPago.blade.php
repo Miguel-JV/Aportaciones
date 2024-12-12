@@ -34,38 +34,44 @@
             color: white !important;
         }
 
+
+        .bg-subtitle-green {
+            background-color: #198754;
+        }
+
+        .bg-subtitle-orange {
+            background-color: #ff9823;
+        }
+
+        .centered{
+            text-align: center;
+        }
+        .flex-centered{
+            display: flex;
+            justify-content: center;
+        }
     </style>
 @endsection
 
 
 @section('contenido')
 
-        {{-- BARRA DE NAVEGACIÓN --}}
-        <ul class="nav nav-tabs justify-content-center">
 
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('consultar.ticket') }}"> <i class="fa-solid fa-house"></i> Panel </a>
-            </li>
+    {{-- Subtitulo FINALIZADOS--}}
+    <div class="d-flex align-items-center p-3 my-3 text-white bg-subtitle-green  container rounded shadow-sm flex-centered" >
+        <i class="fa-solid fa-users" style="margin-right: 20px;"z></i></i>
 
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('reporte.ticket') }}"> <i class="fa-regular fa-file-excel"></i> Reportes</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('modificar.personal') }}"> <i class="fa-solid fa-users"></i></i> Personal</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link active" href="{{ route('consultar.ticket.finalizado') }}"> <i class="fa-regular fa-money-bill-1"></i> Finalizados</a>
-            </li>
-
-        </ul>
-
-    <div class="container mt-5">
+        <div class="lh-1" style="justify-items: center;">
+            <h1 class="h6 mb-0 text-white lh-1"> Finalizados</h1>
+        </div>
+    </div>
+    {{-- DataTable --}}
+    <div class="container ">
         <div class="table-responsive">
-            <table id="ticketsTable" class="table table-striped  table-sm  table-hover" style="text-align:center;">
-                <thead class="">
+            <table id="ticketsTableFinalized" class="table table-striped  table-sm  table-hover" style="text-align:center;">
+                <thead class="table-success">
                     <tr>
+                        {{-- <th class="dt-center">ID</th> --}}
                         <th class="dt-center">FOLIO</th>
                         <th class="dt-center">PRIORIDAD</th>
                         <th class="dt-center">FECHA</th>
@@ -77,9 +83,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($tickets as $ticket)
+                    @foreach ($ticketsFinalizados as $ticket)
                         <tr>
 
+                            {{-- <td>{{ $ticket->ID_TICKET }}</td> --}}
                             <td>{{ $ticket->FOLIO }}</td>
                             <td>{{ $ticket->PRIORIDAD }}</td>
                             <td>{{ $ticket->FECHA_INICIO }}</td>
@@ -113,6 +120,65 @@
         </div>
     </div>
 
+    {{-- Subtitulo PENDIENTES--}}
+    <div class="d-flex align-items-center p-3 my-3 text-white bg-subtitle-orange container rounded shadow-sm flex-centered " >
+        <i class="fa-solid fa-users" style="margin-right: 20px;"z></i></i>
+
+        <div class="lh-1" style="justify-items: center;">
+            <h1 class="h6 mb-0 text-white lh-1"> Pendientes Pasados</h1>
+        </div>
+    </div>
+    {{-- DataTable --}}
+    <div class="container">
+        <div class="table-responsive">
+            <table id="ticketsTablePending" class="table table-striped  table-sm  table-hover" style="text-align:center;">
+                <thead class="table-warning">
+                    <tr>
+                        {{-- <th class="dt-center">ID</th> --}}
+                        <th class="dt-center">FOLIO</th>
+                        <th class="dt-center">PRIORIDAD</th>
+                        <th class="dt-center">FECHA</th>
+                        <th class="dt-center">ESTATUS</th>
+
+                        <th class="dt-center">DETALLE</th>
+                        <th class="dt-center">COTIZAR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($ticketsPendientes as $ticket)
+                        <tr>
+
+                            {{-- <td>{{ $ticket->ID_TICKET }}</td> --}}
+                            <td>{{ $ticket->FOLIO }}</td>
+                            <td>{{ $ticket->PRIORIDAD }}</td>
+                            <td>{{ $ticket->FECHA_INICIO }}</td>
+                            <td>{{ $ticket->ESTATUS_ACTUAL }}</td>
+
+                            <td>
+                                <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#detalleModal" data-ticket="{{ $ticket }}">
+                                    <i class="fa-regular fa-folder-open"></i>
+                                </button>
+                            </td>
+
+                            <td >
+
+                                <a href="{{ route('cotizar.ticket.pendiente',[
+                                    "ticket" =>  $ticket,
+                                    "encrypted" =>  $encrypted
+                                ]) }}" class="btn btn-outline-custom-color">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    @endforeach
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 
     {{-- MODAL --}}
     <div class="modal fade" id="detalleModal" tabindex="-1" role="dialog" aria-labelledby="label" aria-hidden="true">
@@ -125,6 +191,24 @@
                     </button>
                 </div>
                 <div class="modal-body">
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="casa">Casa</label>
+                            <input type="text" class="form-control" id="casa" name="casa" value="" readonly>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="daño">Daño</label>
+                            <input type="text" class="form-control" id="daño" name="daño" value="" readonly>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="reincidencia">Reincidencia</label>
+                            <input type="text" class="form-control" id="reincidencia" name="reincidencia" value="" readonly>
+                        </div>
+
+                    </div>
 
                     <div class="form-row">
                         <div class="form-group col-md-4">
@@ -204,9 +288,9 @@
 
 
 @section('js')
-    {{-- DATATABLE --}}
+    {{-- DATATABLE FINALIZADOS--}}
     <script>
-        let tabla = new DataTable('#ticketsTable',{
+        let tablaFinalizados = new DataTable('#ticketsTableFinalized',{
             lengthMenu: [
                 [5, 10, 15, -1],
                 [5, 10, 15, 'All']
@@ -236,6 +320,39 @@
         });
     </script>
 
+    {{-- DATATABLE PENDIENTES--}}
+    <script>
+        let tablaPendientes = new DataTable('#ticketsTablePending',{
+            lengthMenu: [
+                [5, 10, 15, -1],
+                [5, 10, 15, 'All']
+            ],
+            order: [[2, 'desc'], [0, 'desc']],
+            columnDefs: [
+                {
+                type: 'natural',
+                target: 0
+                }
+            ],
+
+
+            "pagingType": "full_numbers",
+                "language": {
+                    "search": "Buscar:",
+                    "lengthMenu": "Mostrar _MENU_ registros por página",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                    "paginate": {
+                        "first": "<<",
+                        "last": ">>",
+                        "next": ">",
+                        "previous": "<"
+                    }
+                }
+
+        });
+    </script>
+
+
     {{-- MODAL DETALLE --}}
     <script>
         //let strroute = 'storage/app/public/tickets/evidencias/'
@@ -249,6 +366,10 @@
             var modal = $(this)
 
             modal.find('.modal-title').text(ticket.FOLIO)
+            modal.find('.modal-body input#casa').val(ticket.CASA)
+            modal.find('.modal-body input#daño').val(ticket.DAÑO)
+            modal.find('.modal-body input#reincidencia').val(ticket.REINCIDENCIA)
+
             modal.find('.modal-body input#area').val(ticket.AREA_RESPONSABLE)
             modal.find('.modal-body input#afeccion').val(ticket.AFECCION)
             modal.find('.modal-body input#sitio').val(ticket.SITIO)
@@ -256,13 +377,13 @@
             modal.find('.modal-body input#objeto').val(ticket.OBJETO)
             modal.find('.modal-body input#elemento').val(ticket.ELEMENTO)
 
-            var source = `{!! asset('${strroute}${ticket.FOTO_OBLIGATORIA}') !!}`;
+            var source = `{!! asset('${strroute}termino/${ticket.EVIDENCIA_TERMINO}') !!}`;
             modal.find('.modal-body img#myimage_1').attr('src', source);
 
-            var source = `{!! asset('${strroute}${ticket.FOTO_2}') !!}`;
+            var source = `{!! asset('${strroute}termino/${ticket.EVIDENCIA_TERMINO_2}') !!}`;
             modal.find('.modal-body img#myimage_2').attr('src', source);
 
-            var source = `{!! asset('${strroute}${ticket.FOTO_3}') !!}`;
+            var source = `{!! asset('${strroute}termino/${ticket.EVIDENCIA_TERMINO_3}') !!}`;
             modal.find('.modal-body img#myimage_3').attr('src', source);
 
             modal.find('.modal-body textarea#descripcion_concreta').val(ticket.DETALLE)
