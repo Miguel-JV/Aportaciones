@@ -48,6 +48,7 @@ use App\Mail\RecordatorioTicketNoCotizado;
 use Illuminate\Http\Request;
 
 // Dependencias de Excel
+use App\Exports\consultaCompuestaTicketsPendientes;
 use App\Exports\consultaCompuestaTickets;
 use App\Exports\consultaCompuestaSedena;
 use App\Exports\consultaCompuestaSemar;
@@ -290,8 +291,6 @@ class TicketsController extends Controller
         $startWeek = Carbon::now()->startOfWeek()->format("Y-m-d");
 
         return view('Tickets.generarreporte', compact('now', 'startWeek'));
-
-
     }
 
     public function actualizarTickets(tickets $ticket){
@@ -385,23 +384,40 @@ class TicketsController extends Controller
         ])->orderBy('FECHA_INICIO', 'DESC')->get();
 
         $ticketsPendientes = tickets::whereYear('FECHA_INICIO', $currentYear)->where([
-            ['ESTATUS_ACTUAL', 'PENDIENTE'],
+            ['AREA_RESPONSABLE','<>','SEDENA'],
+            ['AREA_RESPONSABLE','<>','SEMAR'],
+
+            ['DAÑO','<>','Siniestro - Desastre Meteorilógico'],
+            ['DAÑO','<>','Siniestro - Temblor'],
+
+            // CORRECION
+            ['REINCIDENCIA','<>','SI'],
+
+            ['ESTATUS_AUTORIZACION','<>','SI'],
+            ['ESTATUS_AUTORIZACION','<>','ANULADO'],
+            ['ESTATUS_AUTORIZACION','<>','CANCELADO'],
+            ['ESTATUS_ACTUAL','PENDIENTE'],
+
+            ['ESTATUS_COTIZACION','NO'],
+            ['FECHA_COMPROMISO',NULL],
+
             ['COTIZACION',0],
 
         ])->orderBy('FECHA_INICIO', 'DESC')->get();
 
 
-        $coordinador = coordinadores::where("VALIDACION", true)->first();
-        $encrypted = Crypt::encryptString($coordinador->NOMBRE);
+        $coordinador = Auth::user()->userable->NOMBRE;
+        $encrypted = Crypt::encryptString($coordinador);
 
         return view('Tickets.consultarTicketsPago', compact('ticketsFinalizados', 'ticketsPendientes', 'encrypted'));
 
     }
 
-    public function actualizarTicketsFinalizados(tickets $ticket){
+    public function actualizarTicketsFinalizados(tickets $ticket, $encrypted){
         $strroute = $this->strroute;
+        $usuario =  Crypt::decryptString($encrypted);
 
-        return view('Tickets.actualizarpagoticket', compact('ticket', 'strroute'));
+        return view('Tickets.actualizarpagoticket', compact('ticket', 'strroute', 'usuario'));
     }
 
     public function cotizarTicketsPendientes(tickets $ticket, $encrypted){
@@ -797,8 +813,9 @@ class TicketsController extends Controller
         $destinatarios = self::obtenerDestinatarios($ticket);
 
         foreach ($destinatarios['coordinadores-tel'] as $nombre => $chat_id) {
-            $payload= $aux. $ticket->FOLIO .'</b>%0A %0A'.
-            '* '.$usuario.' - '.$ticket->AREA_RESPONSABLE;
+            $payload= $aux. $ticket->FOLIO .'</b>%0A'.
+            $ticket->CASA.' - '.$ticket->AREA_RESPONSABLE.
+            '%0A %0A Por: '.$usuario;
             $telegram->sendText($chat_id, $payload);
         }
 
@@ -947,7 +964,7 @@ class TicketsController extends Controller
 
         foreach ($destinatarios['coordinadores-tel'] as $nombre => $chat_id) {
             $payload= "<b>NUEVO TICKET NO AUTORIZADO - ". $ticket->FOLIO .'</b>%0A %0A'.
-            '- ACTUALIZADO POR: '.$usuario.' - '.$ticket->AREA_RESPONSABLE;
+            '- ACTUALIZADO POR: '.$usuario;
             $telegram->sendText($chat_id, $payload);
         }
 
@@ -962,6 +979,11 @@ class TicketsController extends Controller
         $ticket->ESTATUS_ACTUAL         = $request->input('actualizar_estatus');
         // $ticket->EVIDENCIA = $request->input('link_evidencia');
         $ticket->OBSERVACIONES          = $request->input('observaciones_finales');
+
+        // Baja de Imagenes
+        self::eliminarFotoTicketActualizado($ticket->EVIDENCIA_TERMINO);
+        self::eliminarFotoTicketActualizado($ticket->EVIDENCIA_TERMINO_2);
+        self::eliminarFotoTicketActualizado($ticket->EVIDENCIA_TERMINO_3);
 
         // Carga y guardado de Imagenes
         $foto_1 =             self::cargaImgEvidenciaTermino($request->file('foto_obligatoria'));
@@ -1009,6 +1031,11 @@ class TicketsController extends Controller
 
     }
 
+    public function consultarHistorico(){
+        // Cambiar clase
+        $archivo = new consultaCompuestaTicketsPendientes();
+        $archivo->descargar();
+    }
 
 
     // Personal
@@ -1084,7 +1111,7 @@ class TicketsController extends Controller
 
 
     // Tickets Finalizados
-    public function actualizarFinalizado(Request $request, tickets $ticket){
+    public function actualizarFinalizado(Request $request, tickets $ticket, $usuario){
         $evidencia_pago = $request->input('archivo_pago');
 
         if ($evidencia_pago) {
@@ -1101,7 +1128,7 @@ class TicketsController extends Controller
 
         $modificacion->ID_TICKET        = $ticket->ID_TICKET;
         $modificacion->TIPO             = 'ACTUALIZACION ESTATUS - PAGADO';
-        $modificacion->RESPONSABLE      = 'Saul Delgadillo';
+        $modificacion->RESPONSABLE      = $usuario;
         $modificacion->FECHA            = date("Y-m-d H-i-s");
 
         $modificacion->save();
@@ -1113,21 +1140,16 @@ class TicketsController extends Controller
         $destinatarios = self::obtenerDestinatarios($ticket);
 
         foreach ($destinatarios['coordinadores-tel'] as $nombre => $chat_id) {
-            $payload= "<b>ACTUALIZACION ESTATUS - PAGADO </b>%0A %0A".
-            '- '.$ticket->FOLIO.' - '.$ticket->CASA.' - '.$ticket->FECHA_INICIO;
+            $payload= ' <b>ACTUALIZACION ESTATUS - PAGADO - '. $ticket->FOLIO .'</b>%0A'.
+            $ticket->CASA.' - '.$ticket->AREA_RESPONSABLE.
+            '%0A %0A Por: '.$usuario;
             $telegram->sendText($chat_id, $payload);
         }
 
-        return redirect()->route('consultar.ticket.finalizado');
+        return redirect()->route('consultar.ticket.pago');
     }
 
     public function actualizarPasado(Request $request, tickets $ticket){
-        // return $request->all();
-
-        $ticket->SUPERVISOR   = json_decode(self::obtenerSupervisores($ticket->ID_CASA, $ticket->ID_AFECCION))->NOMBRE;
-        $ticket->SUBGERENTE   = json_decode(self::obtenerSubgerentes($ticket->ID_CASA, $ticket->ID_AFECCION))->NOMBRE;
-        $ticket->GERENTE      = json_decode(self::obtenerGerentes($ticket->ID_CASA, $ticket->ID_AFECCION))->NOMBRE;
-
         // Carga y guardado de evidencia
         $evidencia_inicio           = self::cargaImgEvidencia($request->file('foto_inicio'));
         $ticket->FOTO_OBLIGATORIA   = $evidencia_inicio;
@@ -1174,6 +1196,14 @@ class TicketsController extends Controller
         if ($nombre_foto != null) {
             // $nombre_foto = '1728068080_1.jpg';
             \Storage::disk('tickets_evidencias_inicio')->delete($nombre_foto);
+
+        }
+    }
+
+    public function eliminarFotoTicketActualizado($nombre_foto){
+        if ($nombre_foto != null) {
+            // $nombre_foto = '1728068080_1.jpg';
+            \Storage::disk('tickets_evidencias_termino')->delete($nombre_foto);
 
         }
     }
@@ -1645,11 +1675,11 @@ class TicketsController extends Controller
 
     }
 
-    public function enviarCorreoPrueba($destinatario, $cc, $data){
+    public function enviarCorreoPrueba($destinatario, $data){
 
-        Mail::to($destinatario)->cc($cc)->send(new ReporteQuincenalCompleto($data));
-        Mail::to($destinatario)->cc($cc)->send(new ReporteQuincenalCT($data));
-        Mail::to($destinatario)->cc($cc)->send(new ReporteQuincenalResumen($data));
+        Mail::to($destinatario)->send(new ReporteQuincenalCompleto($data));
+        Mail::to($destinatario)->send(new ReporteQuincenalCT($data));
+        Mail::to($destinatario)->send(new ReporteQuincenalResumen($data));
     }
 
 // EXPORTACIONES EXCEL

@@ -59,7 +59,7 @@
 <body>
     <div class="header">
         11 Casas Telmex
-        <h1>{{ $data['hola'] }}</h1>
+        {{-- <h1>{{ $data['hola'] }}</h1> --}}
     </div>
 
     <table>

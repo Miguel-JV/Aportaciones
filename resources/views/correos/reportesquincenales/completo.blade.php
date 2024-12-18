@@ -51,7 +51,7 @@
 </head>
 <body>
 
-    <h1>{{ $data['hola'] }}</h1>
+    {{-- <h1>{{ $data['hola'] }}</h1> --}}
     <h1>786 Bibliotecas Digitales Telmex</h1>
     <h2 style="text-align: center;">775 BDT externas, 11 Casas Telmex</h2>
 

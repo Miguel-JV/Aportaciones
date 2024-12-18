@@ -100,7 +100,10 @@
 
                             <td >
 
-                                <a href="{{ route('actualizar.ticket.finalizado', $ticket) }}" class="btn btn-outline-custom-color">
+                                <a href="{{ route('actualizar.ticket.finalizado',[
+                                        "ticket" =>  $ticket,
+                                        "encrypted" =>  $encrypted
+                                    ]) }}" class="btn btn-outline-custom-color">
                                     <i class="fa-solid fa-file-invoice"></i>
                                 </a>
 

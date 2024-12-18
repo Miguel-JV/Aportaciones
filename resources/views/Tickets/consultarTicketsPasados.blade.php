@@ -195,8 +195,6 @@
 
     {{-- MODAL DETALLE --}}
     <script>
-        //let strroute = 'storage/app/public/tickets/evidencias/'
-        let strroute = 'storage/tickets/evidencias/'
 
         $('#detalleModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget)

@@ -25,7 +25,7 @@ class directores extends Model
     }
 
     public function usuario(){
-        return $this->morphOne('\App\user', 'userable');
+        return $this->morphOne('\App\User', 'userable');
     }
 
 }

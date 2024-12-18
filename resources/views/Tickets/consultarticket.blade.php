@@ -156,17 +156,13 @@
                 </tbody>
             </table>
         </div>
-        @if (Auth::user()->rol == 'director')
-            <div class="text-center">
 
-                <a href="{{ route('crear.tickets') }}" class="btn btn-primary btn-custom-end-dataTable">
-                    <i class="fa-regular fa-square-plus"></i>
-                    Capturar Ticket
-                </a>
-            </div>
-        @else
-        @endif
-
+        <div class="text-center">
+            <a href="{{ route('crear.tickets') }}" class="btn btn-primary btn-custom-end-dataTable">
+                <i class="fa-regular fa-square-plus"></i>
+                Capturar Ticket
+            </a>
+        </div>
 
     </div>
 

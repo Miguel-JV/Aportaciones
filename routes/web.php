@@ -85,7 +85,7 @@ Route::group(['middleware'=>'XSS'], function() {
     Route::get('/tickets/{ticket}/{encargado}/autorizar','TicketsController@autorizarTicket')->name('autorizar.ticket');
 
 
-    Route::get('/tickets/{ticket}/actualizacion/finalizado','TicketsController@actualizarTicketsFinalizados')->name('actualizar.ticket.finalizado');
+    Route::get('/tickets/{ticket}/{encrypted}/actualizacion/finalizado','TicketsController@actualizarTicketsFinalizados')->name('actualizar.ticket.finalizado');
     Route::get('/tickets/{ticket}/{encrypted}/cotización/pendientes','TicketsController@cotizarTicketsPendientes')->name('cotizar.ticket.pendiente');
 
     Route::get('/tickets/{ticket}/actualizacion/pasados','TicketsController@actualizarTicketsPasados')->name('actualizar.ticket.pasado');
@@ -96,15 +96,17 @@ Route::group(['middleware'=>'XSS'], function() {
     // CRUD Tickets
     Route::post('tickets/create','TicketsController@crear')->name('create.ticket');
     Route::post('tickets/consult','TicketsController@consultar')->name('consult.ticket');
+    Route::post('tickets/consult/historic','TicketsController@consultarHistorico')->name('consult.historic.ticket');
+
     Route::patch('tickets/validate/{ticket}/{usuario}','TicketsController@validar')->name('validate.ticket');
     Route::post('tickets/cancel/{ticket}','TicketsController@cancelar')->name('cancel.ticket');
     Route::patch('tickets/quote/{ticket}/{usuario}','TicketsController@cotizar')->name('quote.ticket');
-    Route::patch('tickets/authorize/{ticket}/{usuario}','TicketsController@autorizar')->name('authorize.ticket');
 
+    Route::patch('tickets/authorize/{ticket}/{usuario}','TicketsController@autorizar')->name('authorize.ticket');
     Route::post('tickets/invalidate/{ticket}/{usuario}','TicketsController@anular')->name('invalidate.ticket');
 
     Route::patch('tickets/update/{ticket}','TicketsController@actualizar')->name('update.ticket');
-    Route::patch('tickets/update/{ticket}/finalizado','TicketsController@actualizarFinalizado')->name('update.ticket.finalized');
+    Route::patch('tickets/update/{ticket}/{usuario}/finalizado','TicketsController@actualizarFinalizado')->name('update.ticket.finalized');
     Route::patch('tickets/update/{ticket}/pasado','TicketsController@actualizarPasado')->name('update.ticket.past');
 
     // CRUD Personal Registrado

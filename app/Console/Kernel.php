@@ -13,8 +13,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        Commands\RegistrosEjecucion::class,
-        Commands\NotificacionDiaria::class
+        // Commands\RegistrosEjecucion::class,
+        // Commands\NotificacionDiaria::class
     ];
 
     /**
@@ -37,19 +37,21 @@ class Kernel extends ConsoleKernel
 
 
 // TICKETS
-        // $schedule->command('eliminarfotos:tickets')
-        //                     ->everyMinute();
-        //                     ->cron('* * 01 */3 *');
+        // CORRECION
+        $schedule->command('eliminarfotos:tickets')
+                            // ->daily();
+                            ->cron('* * 01 */3 *');
 
 
+        $schedule->command('ResumenTickets:ReportesXls')
+                            ->daily();
 
-        // $schedule->command('ResumenTickets:ReportesXls')
-        //                     ->everyMinute();
-        //                     ->monthly();
+                            // ->monthly();
 
-        // $schedule->command('ResumenTickets:NoCotizados')
-        //                     ->everyMinute();
-        //                     ->daily();
+
+        // CORRECION
+        $schedule->command('ResumenTickets:NoCotizados')
+                            ->weeklyOn(5, '8:00');
     }
 
     /**

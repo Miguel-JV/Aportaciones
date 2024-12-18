@@ -10,15 +10,15 @@
 
 
 @section('contenido')
-        
+
 
         <div class="container form-container mt-5" style="width: 50%;">
             <div class="form-header">
-                <h2>Generar Consulta</h2>
+                <h2>Reporte General</h2>
             </div>
 
 
-            <form action=" {{ route('consult.ticket') }}" method="POST">
+            <form action=" {{ route('consult.ticket') }}" method="POST" >
             {{-- <form> --}}
 
                 {{-- Redireccionar a rutas de actualizacion  --}}
@@ -42,8 +42,30 @@
 
                 </div>
 
-                <button type="submit" class="btn btn-success">Descargar</button>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success" >Descargar</button>
+                </div>
             </form>
+
+
+
+        </div>
+
+        <div class="container form-container mt-5" style="width: 50%;">
+            <div class="form-header">
+                <h2>Tickets Pendientes</h2>
+            </div>
+
+
+            <form action=" {{ route('consult.historic.ticket') }}" method="POST" class="text-center">
+            {{-- <form> --}}
+
+                {{-- Redireccionar a rutas de actualizacion  --}}
+                @csrf
+
+                <button type="submit" class="btn btn-info">Descargar Pendientes</button>
+            </form>
+
 
 
         </div>

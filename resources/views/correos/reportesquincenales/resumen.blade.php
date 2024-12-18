@@ -123,7 +123,7 @@
 
         <div class="header">
             <h1>Estatus Bibliotecas Digitales Telmex</h1>
-            <h1>{{ $data['hola'] }}</h1>
+            {{-- <h1>{{ $data['hola'] }}</h1> --}}
             <h2>Agosto 2024</h2>
         </div>
 

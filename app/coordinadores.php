@@ -1,6 +1,7 @@
 <?php
 
 namespace App;
+use App\User;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,7 +23,7 @@ class coordinadores extends Model
     public $timestamps = false;
 
     public function usuario(){
-        return $this->morphOne('\App\user', 'userable');
+        return $this->morphOne(User::class, 'userable');
     }
 
     public function casa(){

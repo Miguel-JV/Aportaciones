@@ -119,7 +119,11 @@
                 <h3> {{$ticket->FOLIO}}</h3>
             </div>
 
-            <form action=" {{ route('update.ticket.finalized', $ticket) }}" method="POST" enctype="multipart/form-data">
+            <form action=" {{ route('update.ticket.finalized', [
+                'ticket'=> $ticket,
+                'usuario' => $usuario,
+
+            ]) }}" method="POST" enctype="multipart/form-data">
 
                 {{-- Redireccionar a rutas de actualizacion  --}}
                 @csrf
