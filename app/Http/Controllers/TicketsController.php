@@ -52,6 +52,7 @@ use App\Exports\consultaCompuestaTicketsPendientes;
 use App\Exports\consultaCompuestaTickets;
 use App\Exports\consultaCompuestaSedena;
 use App\Exports\consultaCompuestaSemar;
+use App\Exports\exportarBaseTickets;
 use Maatwebsite\Excel\Facades\Excel;
 
 use App\Exports\ticketResumenGeneral;
@@ -390,8 +391,7 @@ class TicketsController extends Controller
             ['DAÑO','<>','Siniestro - Desastre Meteorilógico'],
             ['DAÑO','<>','Siniestro - Temblor'],
 
-            // CORRECION
-            ['REINCIDENCIA','<>','SI'],
+
 
             ['ESTATUS_AUTORIZACION','<>','SI'],
             ['ESTATUS_AUTORIZACION','<>','ANULADO'],
@@ -1032,8 +1032,12 @@ class TicketsController extends Controller
     }
 
     public function consultarHistorico(){
-        // Cambiar clase
         $archivo = new consultaCompuestaTicketsPendientes();
+        $archivo->descargar();
+    }
+
+    public function consultaCompleta(){
+        $archivo = new exportarBaseTickets();
         $archivo->descargar();
     }
 

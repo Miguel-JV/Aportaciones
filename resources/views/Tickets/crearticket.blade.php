@@ -96,7 +96,7 @@
                 </div>
 
                 <div class="form-group col-md-4">
-                    <label for="reincidencia">Reincidencia</label>
+                    <label for="reincidencia">Garantía</label>
                     <select id="reincidencia" name="reincidencia" class="form-control" required>
                         <option value="">Selecciona la reincidencia...</option>
                         <option value="SI">SI</option>

@@ -97,6 +97,7 @@ Route::group(['middleware'=>'XSS'], function() {
     Route::post('tickets/create','TicketsController@crear')->name('create.ticket');
     Route::post('tickets/consult','TicketsController@consultar')->name('consult.ticket');
     Route::post('tickets/consult/historic','TicketsController@consultarHistorico')->name('consult.historic.ticket');
+    Route::post('tickets/consult/all','TicketsController@consultaCompleta')->name('consult.all.tickets');
 
     Route::patch('tickets/validate/{ticket}/{usuario}','TicketsController@validar')->name('validate.ticket');
     Route::post('tickets/cancel/{ticket}','TicketsController@cancelar')->name('cancel.ticket');

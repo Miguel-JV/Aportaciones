@@ -1,95 +1,238 @@
-<!doctype html>
-<html lang="{{ app()->getLocale() }}">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-        <title>Laravel</title>
+    <style>
+        *{
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+            font-family: poppins,sans-serif;
+            text-decoration: none;
+        }
+        body{
+            overflow-x: hidden;
+        }
+        .hero-header{
+            width:100%;
+            height: 100%;
+            min-height: 100vh;
+        }
+        .wrapper{
+            width:1280px;
+            max-width: 95%;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        header{
+            padding: 40px 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
 
-        <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet" type="text/css">
+        nav .togglebtn{
+            width: 35px;
+            height: 35px;
+            position: absolute;
+            top:45px;
+            right: 3%;
+            z-index: 5;
+            cursor: pointer;
+            display: none;
+        }
+        nav .togglebtn span{
+            display: block;
+            background-color: #007ced;
+            margin: 5px 0px;
+            width:100%;
+            height:3px;
+            transition: 0.3s;
+            transition-property:  transform, opacity;
 
-        <!-- Styles -->
-        <style>
-            html, body {
-                background-color: #fff;
-                color: #636b6f;
-                font-family: 'Nunito', sans-serif;
-                font-weight: 200;
-                height: 100vh;
-                margin: 0;
+        }
+        nav .navlinks{
+            list-style-type: none;
+        }
+        nav .navlinks li{
+            display: inline-block;
+        }
+        nav .navlinks li a{
+            color:#007ced;
+            margin-right: 2.5rem;
+            z-index: 1;
+            font-weight: 200;
+            letter-spacing: 4px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-top:4rem;
+        }
+        .container .hero-pic{
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 15px solid #444;
+            box-shadow: 5px 7px 25px rgba(0,0,0,0.5);
+        }
+        .hero-pic img{
+            height: 100%;
+            width: 100%;
+            transition: 0.5s;
+        }
+        .hero-pic img:hover{
+            transform: scale(1.07);
+        }
+        .hero-text{
+            max-width: 550px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero-text h5 span{
+            color:#007ced;
+            font-size: 16px;
+        }
+        .hero-text h1{
+            color: #007ced;
+            font-size: 3rem;
+        }
+
+        @media(max-width:1000px)
+        {
+            .container{
+                flex-direction: column;
+                padding-top:2rem;
+            }
+            .hero-text{
+                padding:40px 0px;
+            }
+            .hero-text h1{
+                color: #007ced;
+                font-size: 2rem;
             }
 
-            .full-height {
-                height: 100vh;
+            .container .hero-pic{
+                width: 200px;
+                height: 200px;
+                border-radius: 50%;
+                overflow: hidden;
+                border: 15px solid #444;
+                box-shadow: 5px 7px 25px rgba(0,0,0,0.5);
             }
+        }
 
-            .flex-center {
-                align-items: center;
-                display: flex;
-                justify-content: center;
-            }
+        .button {
+            height: 50px;
+            width: 200px;
+            position: relative;
+            background-color: transparent;
+            cursor: pointer;
+            border: 2px solid #252525;
+            overflow: hidden;
+            border-radius: 30px;
+            color: #333;
+            transition: all 0.5s ease-in-out;
+        }
 
-            .position-ref {
-                position: relative;
-            }
+        .btn-txt {
+            z-index: 1;
+            font-weight: 800;
+            letter-spacing: 4px;
+        }
 
-            .top-right {
-                position: absolute;
-                right: 10px;
-                top: 18px;
-            }
+        .type1::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: all 0.5s ease-in-out;
+            background-color: #3977ba ;
+            border-radius: 30px;
+            visibility: hidden;
+            height: 10px;
+            width: 10px;
+            z-index: -1;
+        }
 
-            .content {
-                text-align: center;
-            }
+        .button:hover {
+            box-shadow: 0.5px 0.5px 200px #8ebcef ;
+            color: #fff;
+            border: none;
+        }
 
-            .title {
-                font-size: 84px;
-            }
+        .type1:hover::after {
+            visibility: visible;
+            transform: scale(100) translateX(2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-header">
+        <div class="wrapper">
+            <header>
+                <div class="logo">
 
-            .links > a {
-                color: #636b6f;
-                padding: 0 25px;
-                font-size: 12px;
-                font-weight: 600;
-                letter-spacing: .1rem;
-                text-decoration: none;
-                text-transform: uppercase;
-            }
-
-            .m-b-md {
-                margin-bottom: 30px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="flex-center position-ref full-height">
-            @if (Route::has('login'))
-                <div class="top-right links">
-                    @auth
-                        {{-- <a href="{{ url('/home') }}">Home</a> --}}
-                        <a href="{{ route('consultar.ticket') }}">MANTENIMIENTOS</a>
-                    @else
-                        {{-- <a href="{{ route('login') }}">Login</a> --}}
-                        <a href="{{ route('login.tickets') }}">Login</a>
-                        {{-- <a href="{{ route('register') }}">Register</a> --}}
-                    @endauth
                 </div>
-            @endif
-
-            <div class="content">
-                <div class="title m-b-md">
-                    Laravel CLON SERVER
+                <nav>
+                    <ul class="navlinks">
+                        @if (Route::has('login'))
+                            @auth
+                                <li><a href="{{ url('/home') }}"><i class="fa-solid fa-house"></i></a></li>
+                            @else
+                                <li><a href="{{ route('login.tickets') }}"><i class="fa-solid fa-user-tie"></i></a></li>
+                            @endauth
+                        @endif
+                    </ul>
+                </nav>
+            </header>
+            <div class="container">
+                <div class="hero-pic">
+                <img src="{{ asset('img/telmex-welcome.png') }}" alt="profile pic">
                 </div>
+                <div class="hero-text">
+                    <h5> <span class="input">Gestión</span></h5>
+                    <h1>Sistema de Integración</h1>
 
-                <div class="links">
-                    {{-- <a href="{{ route('pruebas') }}">Pruebas</a> --}}
-                    <a href="{{ route('landing.aldea') }}">Propuesta Aldea</a>
-                    <a href="{{ route('landing.general') }}">Propuesta General</a>
+                    @if (Route::has('login'))
+                        @auth
+                            <a href="{{ url('/home') }}" style="text-align: center;">
+                                <button class="button type1" style="margin-top: 5%; ">
+                                    Acceder
+                                </button>
+                            </a>
+                        @else
+                            <a href="{{ route('login.tickets') }}" style="text-align: center;">
+                                <button class="button type1" style="margin-top: 5%; ">
+                                    Acceder
+                                </button>
+                            </a>
+                        @endauth
+                    @endif
+
                 </div>
             </div>
         </div>
-    </body>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.10/typed.min.js"></script>
+    <script>
+
+        var typed=new Typed(".input",{
+            strings:["Mantenimientos","Tutorias","Reportes"],
+            typedSpeed:70,
+            backSpeed:55,
+            loop:true
+        })
+    </script>
+</body>
 </html>

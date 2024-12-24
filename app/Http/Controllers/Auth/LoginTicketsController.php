@@ -34,7 +34,7 @@ class LoginTicketsController extends Controller
             'folio'       => $request->input('folio'),
             'password'      => $request->input('password'),
         ], $request->remember) ){
-            return redirect()->intended(route('consultar.ticket'));
+            return redirect()->intended(route('home'));
         }
 
 

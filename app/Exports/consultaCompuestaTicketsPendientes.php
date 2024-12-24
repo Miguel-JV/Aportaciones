@@ -36,7 +36,7 @@ class consultaCompuestaTicketsPendientes {
         return Excel::create('Consulta de Mantenimientos Pendientes', function($excel)  {
 
             $excel->sheet('Resumen', function($sheet)  {
-// CORRECION
+
                 $tickets = tickets::where([
                     ['ESTATUS_ACTUAL', 'PENDIENTE'],
                     ['ESTATUS_COTIZACION','<>' ,'NO'],
@@ -83,7 +83,7 @@ class consultaCompuestaTicketsPendientes {
             $excel->sheet('Detalle General', function($sheet)  {
 
                 $sheet->loadView('exports.tickets', [
-                    // CORRECION
+
                     'tickets' => tickets::where([
                                     ['ESTATUS_ACTUAL', 'PENDIENTE'],
                                     ['ESTATUS_COTIZACION','<>' ,'NO'],

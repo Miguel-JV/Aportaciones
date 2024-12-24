@@ -53,6 +53,10 @@ class EliminarFotosTickets extends Command
         foreach ($tickets as $ticket ) {
             self::eliminarFotoTicket($ticket['FOTO_2']);
             self::eliminarFotoTicket($ticket['FOTO_3']);
+
+            // Termino
+            self::eliminarFotoTicketTermino($ticket['EVIDENCIA_TERMINO_2']);
+            self::eliminarFotoTicketTermino($ticket['EVIDENCIA_TERMINO_3']);
         }
     }
 // CONTROL DE REGISTROS ANUALES
@@ -60,6 +64,12 @@ class EliminarFotosTickets extends Command
         if ($nombre_foto != null) {
             // $nombre_foto = '1728068080_1.jpg';
             \Storage::disk('tickets_evidencias_inicio')->delete($nombre_foto);
+        }
+    }
+
+    public function eliminarFotoTicketTermino($nombre_foto){
+        if ($nombre_foto != null) {
+            \Storage::disk('tickets_evidencias_termino')->delete($nombre_foto);
         }
     }
 }

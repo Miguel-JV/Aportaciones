@@ -90,7 +90,6 @@ class RecordatorioTicketsNoCotizados extends Command
             ['DAÑO','<>','Siniestro - Desastre Meteorilógico'],
             ['DAÑO','<>','Siniestro - Temblor'],
 
-            // CORRECION
             ['REINCIDENCIA','<>','SI'],
 
             ['ESTATUS_AUTORIZACION','<>','SI'],
@@ -153,74 +152,73 @@ class RecordatorioTicketsNoCotizados extends Command
         $telegram->sendText($chat_id, $payload);
     }
 
-    // CORRECION
-    
+
     // Correo
-    // public function envioPrioritarioRecordatorio($nivel, $area, $data){
+    public function envioPrioritarioRecordatorio($nivel, $area, $data){
 
-    //     // Enviar correo a encargados
-    //     // $area    = $ticket->afeccion->area_afeccion;
-    //     $data['area'] = $area->NOMBRE;
+        // Enviar correo a encargados
+        // $area    = $ticket->afeccion->area_afeccion;
+        $data['area'] = $area->NOMBRE;
 
-    //     $supervisor = $data['ticket']->casa->supervisor_casa->where('ID_AREA', $area->ID_AREA)->first();
-    //     $subgerente = $data['ticket']->casa->subgerente_casa->where('ID_AREA', $area->ID_AREA)->first();
-    //     $gerente    = $data['ticket']->casa->gerente_casa->where('ID_AREA', $area->ID_AREA)->first();
+        $supervisor = $data['ticket']->casa->supervisor_casa->where('ID_AREA', $area->ID_AREA)->first();
+        $subgerente = $data['ticket']->casa->subgerente_casa->where('ID_AREA', $area->ID_AREA)->first();
+        $gerente    = $data['ticket']->casa->gerente_casa->where('ID_AREA', $area->ID_AREA)->first();
 
-    //     switch ($nivel) {
-    //         case 'GERENCIA':
-    //             // NOTIFICAR GERENTE SI EXISTE
-    //             if ($gerente) {
-    //                 $data['destinatario']  = $gerente->NOMBRE;
-    //                 $destinatario = $gerente->CORREO;
+        switch ($nivel) {
+            case 'GERENCIA':
+                // NOTIFICAR GERENTE SI EXISTE
+                if ($gerente) {
+                    $data['destinatario']  = $gerente->NOMBRE;
+                    $destinatario = $gerente->CORREO;
 
-    //                 Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
-    //             }
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
 
-    //             // NOTIFICAR SUBGERENTE SI EXISTE
-    //             if ($subgerente) {
-    //                 $data['destinatario'] = $subgerente->NOMBRE;
-    //                 $destinatario = $subgerente->CORREO;
+                // NOTIFICAR SUBGERENTE SI EXISTE
+                if ($subgerente) {
+                    $data['destinatario'] = $subgerente->NOMBRE;
+                    $destinatario = $subgerente->CORREO;
 
-    //                 Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
-    //             }
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
 
-    //             // NOTIFICAR SUPERVISOR SI EXISTE
-    //             if ($supervisor) {
-    //                 $data['destinatario'] = $supervisor->NOMBRE;
-    //                 $destinatario = $supervisor->CORREO;
+                // NOTIFICAR SUPERVISOR SI EXISTE
+                if ($supervisor) {
+                    $data['destinatario'] = $supervisor->NOMBRE;
+                    $destinatario = $supervisor->CORREO;
 
-    //                 Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
-    //             }
-    //         break;
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
+            break;
 
-    //         case 'SUBGERENCIA':
-    //             // NOTIFICAR SUBGERENTE SI EXISTE
-    //             if ($subgerente) {
-    //                 $data['destinatario'] = $subgerente->NOMBRE;
-    //                 $destinatario = $subgerente->CORREO;
+            case 'SUBGERENCIA':
+                // NOTIFICAR SUBGERENTE SI EXISTE
+                if ($subgerente) {
+                    $data['destinatario'] = $subgerente->NOMBRE;
+                    $destinatario = $subgerente->CORREO;
 
-    //                 Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
-    //             }
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
 
-    //             // NOTIFICAR SUPERVISOR SI EXISTE
-    //             if ($supervisor) {
-    //                 $data['destinatario'] = $supervisor->NOMBRE;
-    //                 $destinatario = $supervisor->CORREO;
+                // NOTIFICAR SUPERVISOR SI EXISTE
+                if ($supervisor) {
+                    $data['destinatario'] = $supervisor->NOMBRE;
+                    $destinatario = $supervisor->CORREO;
 
-    //                 Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
-    //             }
-    //         break;
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
+            break;
 
-    //         case 'SUPERVISION':
-    //             // NOTIFICAR SUPERVISOR SI EXISTE
-    //             if ($supervisor) {
-    //                 $data['destinatario'] = $supervisor->NOMBRE;
-    //                 $destinatario = $supervisor->CORREO;
+            case 'SUPERVISION':
+                // NOTIFICAR SUPERVISOR SI EXISTE
+                if ($supervisor) {
+                    $data['destinatario'] = $supervisor->NOMBRE;
+                    $destinatario = $supervisor->CORREO;
 
-    //                 Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
-    //             }
-    //         break;
-    //     }
-    // }
+                    Mail::to($destinatario)->send(new RecordatorioTicketNoCotizado($data));
+                }
+            break;
+        }
+    }
 
 }

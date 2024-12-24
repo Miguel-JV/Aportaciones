@@ -53,7 +53,7 @@
 
         <div class="container form-container mt-5" style="width: 50%;">
             <div class="form-header">
-                <h2>Tickets Pendientes</h2>
+                <h2>Exportar XLSX</h2>
             </div>
 
 
@@ -64,9 +64,12 @@
                 @csrf
 
                 <button type="submit" class="btn btn-info">Descargar Pendientes</button>
+            </form> <br>
+
+            <form action=" {{ route('consult.all.tickets') }}" method="POST" class="text-center">
+                @csrf
+                <button type="submit" class="btn btn-info">Descargar Base</button>
             </form>
-
-
 
         </div>
 

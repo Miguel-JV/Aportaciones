@@ -37,21 +37,21 @@ class Kernel extends ConsoleKernel
 
 
 // TICKETS
-        // CORRECION
+
         $schedule->command('eliminarfotos:tickets')
                             // ->daily();
                             ->cron('* * 01 */3 *');
 
 
         $schedule->command('ResumenTickets:ReportesXls')
-                            ->daily();
+                            // ->daily();
+                            ->monthly();
 
-                            // ->monthly();
 
-
-        // CORRECION
         $schedule->command('ResumenTickets:NoCotizados')
-                            ->weeklyOn(5, '8:00');
+                            ->weeklyOn(4, '9:00');
+        $schedule->command('ResumenTickets:NoCotizados')
+                            ->weeklyOn(2, '9:00');
     }
 
     /**

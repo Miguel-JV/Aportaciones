@@ -293,7 +293,7 @@
         }
 
         .grid-container{ /* estilos de grilla segun los objetos */
-            height: 1300px;
+            height: 1000px;
             display: grid;
             gap: 10px;
             grid-template:
@@ -312,7 +312,7 @@
                 grid-template:
                 "logo              logo              logo"   200px
                 "conferencia-frame conferencia-frame navbar" 500px
-                "footer            footer            footer" 600px
+                "footer            footer            footer" 300px
             }
         }
 
@@ -403,6 +403,54 @@
         }
 
     </style>
+
+    {{-- Boton Conócenos--}}
+    <style>
+        .button {
+        height: 50px;
+        width: 200px;
+        position: relative;
+        background-color: transparent;
+        cursor: pointer;
+        border: 2px solid #252525;
+        overflow: hidden;
+        border-radius: 30px;
+        color: #333;
+        transition: all 0.5s ease-in-out;
+        }
+
+        .btn-txt {
+        z-index: 1;
+        font-weight: 800;
+        letter-spacing: 4px;
+        }
+
+        .type1::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        transition: all 0.5s ease-in-out;
+        background-color: #3977ba;
+        border-radius: 30px;
+        visibility: hidden;
+        height: 10px;
+        width: 10px;
+        z-index: -1;
+        }
+
+        .button:hover {
+        box-shadow: 1px 1px 200px #3977ba;
+        color: #fff;
+        border: none;
+        }
+
+        .type1:hover::after {
+        visibility: visible;
+        transform: scale(100) translateX(2px);
+        }
+
+    </style>
 @endsection
 
 
@@ -451,12 +499,19 @@
 
                 <footer class="footer">
                     <a href="https://telmexeducacion.com/" >
-                        <h4 class="aldea-embed-title font-subtitle-site">¡VISITA NUESTRO SITIO WEB!</h4>
+                        <h4 class="aldea-embed-title font-subtitle-site">¡Estamos conectados contigo!</h4>
+                        <p class="aldea-embed-title font-subtitle-site" style="font-size:medium;">
+                            Participa en nuestras actividades desde este sitio o visitanos en alguna de nuestras sedes y
+                            <br>desarrolla tus habilidades digitales.
+                        </p>
                     </a>
 
-                    <a href="https://telmexeducacion.com/">
-                        <img src="{{ asset('img/header-page.png') }}" alt="">
+                    <a href="https://telmexeducacion.com/" >
+                        <button class="button type1" style="margin-top: 2%;">
+                            <span class="btn-txt">Conócenos</span>
+                        </button>
                     </a>
+
                 </footer>
 
 
